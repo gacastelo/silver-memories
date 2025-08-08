@@ -1,0 +1,6 @@
+pygame==2.5.2
+pytmx==3.32
+pyscroll==2.29
+pygame_gui==0.6.9
+noise==1.2.2
+pytweening==1.0.7
