@@ -4,58 +4,59 @@ from sprites import *
 from pytmx.util_pygame import load_pygame
 from groups import AllSprites
 
-
 class Game:
     def __init__(self):
-        #setup
+        # setup
         pygame.init()
-        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
-        pygame.display.set_caption("Silver Memories")
+        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        pygame.display.set_caption('Survivor')
         self.clock = pygame.time.Clock()
         self.running = True
 
-        #grupos
+        # groups 
         self.all_sprites = AllSprites()
         self.collision_sprites = pygame.sprite.Group()
 
-        #sprites
-        self.player = Player((400,300), self.all_sprites, self.collision_sprites)
-        
-        # Chame a função de setup aqui
         self.setup()
 
-
+        # sprites
+        
     def setup(self):
-        map = load_pygame(join('game', 'data', 'maps', 'map.tmx'))
+        map = load_pygame(join('data', 'maps', 'world.tmx'))
 
-        for x, y, image in map.get_layer_by_name('ground').tiles():
-            Sprite((x * TILE_SIZE, y * TILE_SIZE), image, self.all_sprites)
-
+        for x, y, image in map.get_layer_by_name('Ground').tiles():
+            Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
+        
         for obj in map.get_layer_by_name('Objects'):
-            ColisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
+            CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
+        
+        for obj in map.get_layer_by_name('Collisions'):
+            CollisionSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
 
-        for obj in map.get_layer_by_name('Collision'):
-            ColisionSprite((obj.x, obj.y), pygame.surface((obj.width, obj.height)), self.collision_sprites)
+        for obj in map.get_layer_by_name('Entities'):
+            if obj.name == 'Player':
+                self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
 
     def run(self):
         while self.running:
-            # Delta time for frame rate control
-            dt = self.clock.tick(60) / 1000.0
-            # Event Loop
+            # dt 
+            dt = self.clock.tick() / 1000
+
+            # event loop 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
-            # update game state
+            # update 
             self.all_sprites.update(dt)
 
-            #draw
+            # draw
+            self.screen.fill('black')
             self.all_sprites.draw(self.player.rect.center)
             pygame.display.update()
 
         pygame.quit()
 
-if __name__ == "__main__":
-    # Initialize the game
-    jogo = Game()
-    jogo.run()
+if __name__ == '__main__':
+    game = Game()
+    game.run()
