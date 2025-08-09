@@ -3,6 +3,7 @@ from player import Player
 from sprites import *
 from pytmx.util_pygame import load_pygame
 from groups import AllSprites
+from boss import *
 
 class Game:
     def __init__(self):
@@ -36,6 +37,10 @@ class Game:
         for obj in map.get_layer_by_name('Entities'):
             if obj.name == 'Player':
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
+                
+        self.spawn_points = [(1800, 800), (1800, 850), (1850, 800), (1850, 850), (1900, 800), (1900, 850)]
+        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points)
+        
 
     def run(self):
         while self.running:
@@ -46,6 +51,12 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+        
+                #boss
+                self.boss.handle_event(event)
+
+                self.boss.update(dt)
+                self.boss.draw(self.screen)
 
             # update 
             self.all_sprites.update(dt)
@@ -53,6 +64,9 @@ class Game:
             # draw
             self.screen.fill('black')
             self.all_sprites.draw(self.player.rect.center)
+            if self.boss.alive():
+                self.boss.draw_health_bar(self.screen)
+
             pygame.display.update()
 
         pygame.quit()
