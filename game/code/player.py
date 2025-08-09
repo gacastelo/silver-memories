@@ -7,7 +7,8 @@ class Player(pygame.sprite.Sprite):
         self.state, self.frame_index = 'down', 0
         self.image = self.frames[self.state][0]
         self.rect = self.image.get_rect(center=pos)
-        self.hitbox_rect = self.rect.inflate(-60, -90)
+        self.hitbox_rect = self.rect.inflate(-90, -75)
+        self.damage_hitbox = self.rect.inflate(-40,-40)  # Retângulo para o hitbox de dano
 
         # movement 
         self.direction = pygame.Vector2()
@@ -49,20 +50,18 @@ class Player(pygame.sprite.Sprite):
 
     def load_images(self):
         self.frames = {'left': [], 'right': [], 'up': [], 'down': [], 'left_idle': [], 'right_idle': [], 'up_idle': [], 'down_idle': []}
-        # Adicione também os estados de defesa se tiver sprites para eles
-        # 'left_shield': [], 'right_shield': [], 'up_shield': [], 'down_shield': []
         
         for state in self.frames.keys():
             path = join('images', 'player', state)
             # Apenas tenta carregar se o diretório existir
             try:
                 self.frames[state] = [pygame.image.load(join(path, file_name)).convert_alpha() 
-                                    for _, _, file_names in walk(path) for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0]))]
+                                      for _, _, file_names in walk(path) for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0]))]
             except FileNotFoundError:
                  # Se não houver sprites de idle, usa o primeiro frame do movimento
                 if '_idle' in state:
                     base_state = state.replace('_idle', '')
-                    if self.frames[base_state]:
+                    if base_state in self.frames and self.frames[base_state]:
                         self.frames[state] = [self.frames[base_state][0]]
                     else:
                         print(f"Aviso: Sprites para '{state}' e '{base_state}' não encontrados.")
@@ -119,11 +118,11 @@ class Player(pygame.sprite.Sprite):
                     self.hitbox_rect.left - shield_w - offset, 
                     self.hitbox_rect.centery - shield_h / 2, 
                     shield_w, shield_h)
-    
+        
         # Para cima e para baixo, o escudo é HORIZONTAL
         else:
             shield_w, shield_h = 90, 20 # Largura e altura para um escudo horizontal
-    
+        
             if 'down' in self.state:
                 # Posição X: centralizado horizontalmente
                 # Posição Y: abaixo do jogador + offset
@@ -141,36 +140,77 @@ class Player(pygame.sprite.Sprite):
 
     def create_attack_hitbox(self):
         offset = 5
-        if 'up' in self.state:
-            self.attack_hitbox = pygame.Rect(self.hitbox_rect.centerx - 40, self.hitbox_rect.top - 80 - offset, 80, 80)
-        elif 'down' in self.state:
-            self.attack_hitbox = pygame.Rect(self.hitbox_rect.centerx - 40, self.hitbox_rect.bottom + offset, 80, 80)
-        elif 'left' in self.state:
-            self.attack_hitbox = pygame.Rect(self.hitbox_rect.left - 80 - offset, self.hitbox_rect.centery - 40, 80, 80)
-        elif 'right' in self.state:
-            self.attack_hitbox = pygame.Rect(self.hitbox_rect.right + offset, self.hitbox_rect.centery - 40, 80, 80)
 
+        attack_size_horizontal = (90, 120)
+        attack_size_vertical = (120, 90)
+
+        # Cria um Rect temporário no centro do player para facilitar o cálculo
+        temp_rect = pygame.Rect(self.hitbox_rect.centerx, self.hitbox_rect.centery, 0, 0)
+
+        if 'up' in self.state:
+            self.attack_hitbox = pygame.Rect(0, 0, *attack_size_vertical)
+            self.attack_hitbox.midbottom = (self.hitbox_rect.centerx, self.hitbox_rect.top - offset)
+        elif 'down' in self.state:
+            self.attack_hitbox = pygame.Rect(0, 0, *attack_size_vertical)
+            self.attack_hitbox.midtop = (self.hitbox_rect.centerx, self.hitbox_rect.bottom + offset)
+        elif 'left' in self.state:
+            self.attack_hitbox = pygame.Rect(0, 0, *attack_size_horizontal)
+            self.attack_hitbox.midright = (self.hitbox_rect.left - offset, self.hitbox_rect.centery)
+        elif 'right' in self.state:
+            self.attack_hitbox = pygame.Rect(0, 0, *attack_size_horizontal)
+            self.attack_hitbox.midleft = (self.hitbox_rect.right + offset, self.hitbox_rect.centery)
+
+    # A principal alteração está nesta função para otimizar o movimento e colisão
     def move(self, dt):
+        self.posicao_anterior = self.hitbox_rect.copy()
         if self.direction.length() > 0:
+            # Movimento e colisão horizontal
             self.hitbox_rect.x += self.direction.x * self.speed * dt
             self.collision('horizontal')
+            
+            # Movimento e colisão vertical
             self.hitbox_rect.y += self.direction.y * self.speed * dt
             self.collision('vertical')
+        
+        # Finalmente, centraliza o retangulo visual no hitbox
         self.rect.center = self.hitbox_rect.center
 
+        # Atualiza a posição do hitbox de dano para coincidir com o hitbox do jogador
+        self.damage_hitbox.center = self.hitbox_rect.center
+
+    #def collision(self, direction): #COLISÃO ANTIGA SAVED 
+    #   for sprite in self.collision_sprites:
+    #       if sprite.rect.colliderect(self.hitbox_rect):
+    #           if direction == 'horizontal':
+    #               if self.direction.x > 0:  # Movendo para a direita
+    #                   self.hitbox_rect.right = sprite.rect.left
+    #               if self.direction.x < 0:  # Movendo para a esquerda
+    #                   self.hitbox_rect.left = sprite.rect.right
+    #           else:  # vertical
+    #               if self.direction.y < 0:  # Movendo para cima
+    #                   self.hitbox_rect.top = sprite.rect.bottom
+    #               if self.direction.y > 0:  # Movendo para baixo
+    #                   self.hitbox_rect.bottom = sprite.rect.top
+
+    # Lógica de colisão original e mais fudida totalmente feia 
     def collision(self, direction):
+        amortecimento_horizontal = 11 # para evitar q a camera fique tremendo muito
+        amortecimento_vertical = 20 # para evitar q a camera fique tremendo muito
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
                 if direction == 'horizontal':
-                    if self.direction.x > 0: self.hitbox_rect.right = sprite.rect.left
-                    if self.direction.x < 0: self.hitbox_rect.left = sprite.rect.right
-                else: # vertical
-                    if self.direction.y < 0: self.hitbox_rect.top = sprite.rect.bottom
-                    if self.direction.y > 0: self.hitbox_rect.bottom = sprite.rect.top
+                    if self.direction.x > 0:  # Movendo para a direita
+                        self.hitbox_rect.right = self.posicao_anterior.centerx + amortecimento_horizontal
+                    if self.direction.x < 0:  # Movendo para a esquerda
+                        self.hitbox_rect.left = self.posicao_anterior.centerx - amortecimento_horizontal
+                else:  # vertical
+                    if self.direction.y < 0:  # Movendo para cima
+                        self.hitbox_rect.top = self.posicao_anterior.centery - amortecimento_vertical
+                    if self.direction.y > 0:  # Movendo para baixo
+                        self.hitbox_rect.bottom = self.posicao_anterior.centery + amortecimento_vertical
 
     def get_state(self):
         # Define o estado atual (direção) para animação
-        # Prioriza o movimento horizontal para a escolha do sprite (left/right)
         if self.direction.x != 0:
             self.state = 'right' if self.direction.x > 0 else 'left'
         elif self.direction.y != 0:
@@ -178,76 +218,87 @@ class Player(pygame.sprite.Sprite):
         # Se não houver movimento, o estado não muda, mantendo a última direção olhada
 
     def animate(self, dt):
-        self.get_state() # Atualiza a direção do personagem
+        self.get_state()
         
-        # Animação de ataque
         if self.attacking:
-            # Mantém o personagem no primeiro frame da animação de andar da direção atual
             self.image = self.frames[self.state.replace('_idle', '')][0]
             
-            # Anima a espada
             frames = self.sword_frames[self.state.replace('_idle', '')]
             self.sword_frame_index += 15 * dt
             if self.sword_frame_index >= len(frames):
                 self.sword_frame_index = len(frames) - 1
 
-        # Animação de defesa
         elif self.shield_active:
-            # Idealmente, você teria sprites 'up_shield', 'down_shield', etc.
-            # Por enquanto, vamos usar a imagem de idle (parado)
             idle_state = self.state.split('_')[0] + '_idle'
-            if self.frames[idle_state]:
+            if idle_state in self.frames and self.frames[idle_state]:
                 self.image = self.frames[idle_state][0]
-            else: # Fallback para o primeiro frame de movimento
+            else:
                 self.image = self.frames[self.state.replace('_idle', '')][0]
 
-        # Animação de movimento ou parado
         else:
-            if self.direction.length() > 0: # Movendo
+            if self.direction.length() > 0:
                 self.frame_index += 5 * dt
                 current_frames = self.frames[self.state]
-                self.image = current_frames[int(self.frame_index) % len(current_frames)]
-            else: # Parado
+                if current_frames:
+                    self.image = current_frames[int(self.frame_index) % len(current_frames)]
+            else:
                 self.frame_index = 0
                 idle_state = self.state.split('_')[0] + '_idle'
-                if self.frames[idle_state]:
+                if idle_state in self.frames and self.frames[idle_state]:
                     self.image = self.frames[idle_state][0]
-                else: # Fallback
+                else:
                     self.image = self.frames[self.state.replace('_idle', '')][0]
 
-
     def draw(self, surface, offset):
+        # Desenha o sprite do jogador
         pos = self.rect.topleft + offset
         surface.blit(self.image, pos)
 
         # Desenha a espada e sua hitbox (para debug)
         if self.attacking and self.attack_hitbox:
-            # Desenha a hitbox do ataque
             pygame.draw.rect(surface, 'red', self.attack_hitbox.move(offset), 2)
             
-            # Desenha a imagem da espada
             sword_frames = self.sword_frames[self.state.replace('_idle', '')]
             if sword_frames:
                 sword_img = sword_frames[int(self.sword_frame_index)]
-                # Centraliza a imagem da espada na hitbox de ataque
                 sword_rect = sword_img.get_rect(center=self.attack_hitbox.center)
                 surface.blit(sword_img, sword_rect.topleft + offset)
 
         # Desenha a hitbox do escudo (para debug)
         if self.shield_active and self.shield_hitbox:
             pygame.draw.rect(surface, 'blue', self.shield_hitbox.move(offset), 2)
+        
 
+        # Adiciona a função de debug para desenhar o rect e hitbox do jogador e das colisões
+        self.debug_draw(surface, offset)
+
+
+    def debug_draw(self, surface, offset):
+        """
+        Função de debug para desenhar as hitboxes e rects.
+        Chame esta função no loop principal do jogo para ver as caixas de colisão.
+        """
+        # Desenha a hitbox do jogador
+        pygame.draw.rect(surface, 'yellow', self.hitbox_rect.move(offset), 2)
+
+        # Desenha o rect visual do jogador
+        pygame.draw.rect(surface, 'green', self.rect.move(offset), 2)
+
+        # Desenha a hitbox de dano do jogador
+        pygame.draw.rect(surface, 'orange', self.damage_hitbox.move(offset), 2)
+
+        # Desenha as hitboxes de todos os sprites de colisão
+        for sprite in self.collision_sprites:
+            pygame.draw.rect(surface, 'purple', sprite.rect.move(offset), 2)
 
     def cooldowns(self):
         now = pygame.time.get_ticks()
         
-        # Cooldown do ataque
         if self.attacking:
             if now - self.attack_time >= self.attack_cooldown:
                 self.attacking = False
                 self.attack_hitbox = None
 
-        # Cooldown do escudo (agora separado e independente)
         if self.shield_active:
             if now - self.shield_time >= self.shield_duration:
                 self.shield_active = False
@@ -257,4 +308,4 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.move(dt)
         self.animate(dt)
-        self.cooldowns() # Chama o método que lida com todos os cooldowns
+        self.cooldowns()
