@@ -1,19 +1,28 @@
 from settings import *
+from sprites import *
 
 class BossBase(pygame.sprite.Sprite):
 
 
     def __init__(self, pos, groups, player, spawn_points, name="Boss", health=1000, speed=50):
         super().__init__(groups)
+
+        self.file_name = remove_accents(name.lower()).replace(" ", "_")
         # carrega imagem original
-        original_image = pygame.image.load(join('images', 'bosses', 'guardiao.png')).convert_alpha()
-    
+        original_image = pygame.image.load(join('images', 'bosses', f'{self.file_name}', 'state_null.png')).convert_alpha()
+
         # redimensiona para 150x150
         self.image = pygame.transform.smoothscale(original_image, (150, 150))
 
         # define posição
         self.rect = self.image.get_rect(center=pos)
 
+        # colisão
+        self.collision_rect = self.rect.inflate(-20, -20)
+        self.collision_sprite = BossCollisionSprite(self)
+        
+        
+        # atributos do boss
         self.name = name
         self.health = health
         self.max_health = health
@@ -34,6 +43,10 @@ class BossBase(pygame.sprite.Sprite):
         self.visible = True
         self.fade_time = 20  # tempo invisível antes de reaparecer
 
+    def collide_with_player(self):
+        """Verifica colisão com o jogador"""
+        print(f"[DEBUG] Verificando colisão com o jogador: {self.collision_rect.colliderect(self.player.hitbox_rect)}")
+
     def teleport(self):
         """Teleporta para um ponto aleatório do mapa"""
         self.visible = False  # fica invisível por um instante
@@ -41,7 +54,27 @@ class BossBase(pygame.sprite.Sprite):
         print(f"[DEBUG] Teleportando... posição antiga: {self.rect.center}")
         new_pos = random.choice(self.spawn_points)
         self.rect.center = new_pos
+        self.collision_rect.center = new_pos  # atualiza a colisão
         print(f"[DEBUG] Nova posição: {self.rect.center}")
+
+    def load_images(self):
+        self.frames = {'left': [], 'right': [], 'up': [], 'down': []}
+        
+        for state in self.frames.keys():
+            path = join('images', self.file_name, state)
+            # Apenas tenta carregar se o diretório existir
+            try:
+                self.frames[state] = [pygame.image.load(join(path, file_name)).convert_alpha() 
+                                      for _, _, file_names in walk(path) for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0]))]
+            except FileNotFoundError:
+                 # Se não houver sprites de idle, usa o primeiro frame do movimento
+                if '_idle' in state:
+                    base_state = state.replace('_idle', '')
+                    if base_state in self.frames and self.frames[base_state]:
+                        self.frames[state] = [self.frames[base_state][0]]
+                    else:
+                        print(f"Aviso: Sprites para '{state}' e '{base_state}' não encontrados.")
+
 
     def take_damage(self, amount):
         self.health -= amount
@@ -67,7 +100,8 @@ class BossBase(pygame.sprite.Sprite):
 
     def attack(self):
         """Ataque padrão (pode ser sobrescrito)"""
-        print(f"{self.name} atacou!")
+        #print(f"{self.name} atacou!")
+        pass
 
     def special_attack(self):
         """Ataque especial (deve ser sobrescrito pelo boss específico)"""
@@ -77,6 +111,11 @@ class BossBase(pygame.sprite.Sprite):
         if self.visible:
             pos = (self.rect.left + offset[0], self.rect.top + offset[1])
             surface.blit(self.image, pos)
+        self.debug_draw(surface, offset)
+
+    def debug_draw(self, surface, offset):
+        pygame.draw.rect(surface, (255, 255, 0), self.rect.move(offset), 2)
+
 
     def handle_event(self, event):
         if event.type == pygame.USEREVENT + 1:
@@ -85,7 +124,7 @@ class BossBase(pygame.sprite.Sprite):
     def update(self, dt):
         #print(f"[DEBUG] Boss update called, dt={dt}, pos={self.rect.center}, health={self.health}")
         now = pygame.time.get_ticks()
-
+        
         # Teste: ataque sempre que estiver perto
         if self.rect.colliderect(self.player.rect):
             self.attack()
@@ -100,7 +139,7 @@ class BossBase(pygame.sprite.Sprite):
         bar_width = 400
         bar_height = 20
         bar_x = (surface.get_width() - bar_width) // 2
-        bar_y = 20
+        bar_y = 50
 
         # Fundo da barra
         pygame.draw.rect(surface, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))

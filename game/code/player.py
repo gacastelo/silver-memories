@@ -32,6 +32,11 @@ class Player(pygame.sprite.Sprite):
         self.load_sword_images()
         self.sword_frame_index = 0
 
+        # combate atributos
+        self.health = 3
+        self.max_health = 3
+        self.damage = 10
+
     def load_sword_images(self):
         # Helper para carregar imagens da espada
         for direction in self.sword_frames.keys():
@@ -141,8 +146,8 @@ class Player(pygame.sprite.Sprite):
     def create_attack_hitbox(self):
         offset = 5
 
-        attack_size_horizontal = (90, 120)
-        attack_size_vertical = (120, 90)
+        attack_size_horizontal = (60, 120)
+        attack_size_vertical = (120, 60)
 
         # Cria um Rect temporário no centro do player para facilitar o cálculo
         temp_rect = pygame.Rect(self.hitbox_rect.centerx, self.hitbox_rect.centery, 0, 0)
@@ -209,6 +214,7 @@ class Player(pygame.sprite.Sprite):
                     if self.direction.y > 0:  # Movendo para baixo
                         self.hitbox_rect.bottom = self.posicao_anterior.centery + amortecimento_vertical
 
+
     def get_state(self):
         # Define o estado atual (direção) para animação
         if self.direction.x != 0:
@@ -218,11 +224,11 @@ class Player(pygame.sprite.Sprite):
         # Se não houver movimento, o estado não muda, mantendo a última direção olhada
 
     def animate(self, dt):
+        previous_state = getattr(self, "previous_state", self.state)
         self.get_state()
-        
+
         if self.attacking:
             self.image = self.frames[self.state.replace('_idle', '')][0]
-            
             frames = self.sword_frames[self.state.replace('_idle', '')]
             self.sword_frame_index += 15 * dt
             if self.sword_frame_index >= len(frames):
@@ -236,8 +242,13 @@ class Player(pygame.sprite.Sprite):
                 self.image = self.frames[self.state.replace('_idle', '')][0]
 
         else:
-            if self.direction.length() > 0:
-                self.frame_index += 5 * dt
+            moving = self.direction.length() > 0
+            # Se acabou de sair do idle, começar no frame 1
+            if moving and "_idle" in previous_state:
+                self.frame_index = 1.0
+
+            if moving:
+                self.frame_index += (self.speed/50) * dt
                 current_frames = self.frames[self.state]
                 if current_frames:
                     self.image = current_frames[int(self.frame_index) % len(current_frames)]
@@ -248,6 +259,9 @@ class Player(pygame.sprite.Sprite):
                     self.image = self.frames[idle_state][0]
                 else:
                     self.image = self.frames[self.state.replace('_idle', '')][0]
+
+        self.previous_state = self.state
+
 
     def draw(self, surface, offset):
         # Desenha o sprite do jogador

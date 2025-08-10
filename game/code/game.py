@@ -9,14 +9,14 @@ class Game:
     def __init__(self):
         # setup
         pygame.init()
-        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption('Survivor')
         self.clock = pygame.time.Clock()
         self.running = True
 
         # groups 
         self.all_sprites = AllSprites()
-        self.collision_sprites = pygame.sprite.Group()
+        self.collision_sprites = pygame.sprite.Group() 
 
         self.setup()
 
@@ -38,8 +38,9 @@ class Game:
             if obj.name == 'Player':
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
                 
-        self.spawn_points = [(1800, 800), (1800, 850), (1850, 800), (1850, 850), (1900, 800), (1900, 850)]
+        self.spawn_points = [(1800, 900), (1800, 950)]
         self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points)
+        self.collision_sprites.add(self.boss.collision_sprite)
         
 
     def run(self):
@@ -53,6 +54,7 @@ class Game:
                     self.running = False
         
                 #boss
+                self.boss.collision_sprite.update()
                 self.boss.handle_event(event)
 
                 self.boss.update(dt)
