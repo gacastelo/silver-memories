@@ -3,6 +3,7 @@ from settings import *
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, collision_sprites):
         super().__init__(groups)
+
         self.load_images()
         self.state, self.frame_index = 'down', 0
         self.image = self.frames[self.state][0]
@@ -11,13 +12,14 @@ class Player(pygame.sprite.Sprite):
         self.damage_hitbox = self.rect.inflate(-40,-40)  # Retângulo para o hitbox de dano
 
         # movement 
-        self.direction = pygame.Vector2()
+        self.direction = pygame.Vector2()   
         self.speed = 500
         self.collision_sprites = collision_sprites
 
         # ataque
         self.attacking = False
-        self.attack_cooldown = 400  # ms para duração do ataque
+        self.attack_duration = 400  # ms para duração do ataque
+        self.attack_cooldown = 800  # ms para o cooldown do ataque
         self.attack_time = None
         self.attack_hitbox = None  # retângulo para o ataque
 
@@ -33,9 +35,23 @@ class Player(pygame.sprite.Sprite):
         self.sword_frame_index = 0
 
         # combate atributos
-        self.health = 3
+        self.can_attack = True
+        self.in_combat = True #para Debug
+        self.__health = 3
         self.max_health = 3
         self.damage = 10
+
+    # métodos de combate
+    def dar_dano(self):
+        return self.damage
+    
+    def receber_dano(self):
+        if self.is_alive():
+            self.__health -= 1
+
+    def is_alive(self):
+        return self.__health > 0
+
 
     def load_sword_images(self):
         # Helper para carregar imagens da espada
@@ -84,23 +100,48 @@ class Player(pygame.sprite.Sprite):
         self.direction.y = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
         self.direction = self.direction.normalize() if self.direction.length() > 0 else pygame.Vector2()
 
-        # Ações com o mouse
-        mouse_buttons = pygame.mouse.get_pressed()
-        
+        ## Ações com o mouse
+        #mouse_buttons = pygame.mouse.get_pressed()
+        #
+        ## Ataque com botão esquerdo
+        #if mouse_buttons[0] and self.pode_atacar():
+        #    self.can_attack = False
+        #    self.attacking = True
+        #    self.attack_time = pygame.time.get_ticks()
+        #    self.direction = pygame.Vector2()  # Para o movimento durante o ataque
+        #    self.create_attack_hitbox()
+        #    self.sword_frame_index = 0
+        #
+        ## Ativar escudo com botão direito
+        #elif mouse_buttons[2]:
+        #    self.shield_active = True
+        #    self.shield_time = pygame.time.get_ticks()
+        #    self.direction = pygame.Vector2()  # Para o movimento durante a defesa
+        #    self.create_shield_hitbox()
+
+    def handle_mouse_input(self, event):
+        # Se o jogador estiver em uma ação, não processa novos inputs de ação
+        if self.attacking or self.shield_active:
+            return
+    
         # Ataque com botão esquerdo
-        if mouse_buttons[0]:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.pode_atacar():
+            self.can_attack = False
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
-            self.direction = pygame.Vector2()  # Para o movimento durante o ataque
+            self.direction = pygame.Vector2()
             self.create_attack_hitbox()
             self.sword_frame_index = 0
         
         # Ativar escudo com botão direito
-        elif mouse_buttons[2]:
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
             self.shield_active = True
             self.shield_time = pygame.time.get_ticks()
-            self.direction = pygame.Vector2()  # Para o movimento durante a defesa
+            self.direction = pygame.Vector2()
             self.create_shield_hitbox()
+
+    def pode_atacar(self):
+        return not self.attacking and not self.shield_active and self.can_attack
 
     def create_shield_hitbox(self):
         offset = 10 # Distância do escudo em relação ao jogador
@@ -309,14 +350,16 @@ class Player(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         
         if self.attacking:
-            if now - self.attack_time >= self.attack_cooldown:
+            if now - self.attack_time >= self.attack_duration:
                 self.attacking = False
                 self.attack_hitbox = None
+                self.can_attack = True
 
         if self.shield_active:
             if now - self.shield_time >= self.shield_duration:
                 self.shield_active = False
                 self.shield_hitbox = None
+        
 
     def update(self, dt):
         self.input()

@@ -4,7 +4,7 @@ from sprites import *
 class BossBase(pygame.sprite.Sprite):
 
 
-    def __init__(self, pos, groups, player, spawn_points, name="Boss", health=1000, speed=50):
+    def __init__(self, pos, groups, player, spawn_points, size, name="Boss", health=1000, speed=50):
         super().__init__(groups)
         # atributos do boss
         self.name = name
@@ -24,7 +24,8 @@ class BossBase(pygame.sprite.Sprite):
         original_image = pygame.image.load(join('images', 'bosses', f'{self.file_name}', 'state_null.png')).convert_alpha()
 
         # redimensiona para 128x128
-        self.image = pygame.transform.smoothscale(original_image, (128, 128))
+        self.width, self.height = size
+        self.image = pygame.transform.smoothscale(original_image, (self.width, self.height))
 
         # define posição
         self.rect = self.image.get_rect(center=pos)
@@ -36,9 +37,12 @@ class BossBase(pygame.sprite.Sprite):
         self.weakspot = Weakspot(self, groups, self.true_state)
 
 
-        #Boss Fight features
+        #Boss Combat features
         self.phase = 1  # Começa na fase 1
         self.spawn_points = spawn_points  # lista de posições possíveis para teleporte
+
+        self.hit_cooldown = 1000  # ms
+        self.last_hit_time = 0
 
         # Controle de teleporte
         self.teleport_cooldown = 5000  # ms
@@ -52,7 +56,7 @@ class BossBase(pygame.sprite.Sprite):
     def is_alive(self):
         return self.health > 0
     
-    def take_damage(self, amount, is_weak=False):
+    def take_damage(self, amount, is_weak):
         if is_weak:
             amount *= 2  # dano dobrado no ponto fraco
         self.health -= amount
@@ -130,15 +134,6 @@ class BossBase(pygame.sprite.Sprite):
                     if self.frames[base_state]:
                         self.frames[state] = [self.frames[base_state][0]]
 
-
-
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0:
-            self.die()
-
-        # Controle de fases
-        self.update_phase()
 
     def update_phase(self):
         """Altera comportamento conforme a vida restante"""
@@ -227,11 +222,18 @@ class BossBase(pygame.sprite.Sprite):
         surface.blit(text, (bar_x, bar_y - 25))
 
 class GuardiaoAstra(BossBase):
-    def __init__(self, pos, groups, player, spawn_points):
-        super().__init__(pos, groups, player, spawn_points, name="Guardião de Astra", health=1200, speed=40)
+    def __init__(self, pos, groups, player, spawn_points, size):
+        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40)
 
     def special_attack(self):
         if self.phase == 2:
             print("Guardião invoca vinhas para prender o jogador!")
         elif self.phase == 3:
             print("Guardião libera lodo tóxico que reduz velocidade!")
+    
+    def take_damage(self, amount, is_weak):
+        if is_weak:
+            super().take_damage(amount, is_weak)
+        else:
+            print("Golpe ignorado! Só leva dano no ponto fraco.")
+

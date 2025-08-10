@@ -4,6 +4,7 @@ from sprites import *
 from pytmx.util_pygame import load_pygame
 from groups import AllSprites
 from boss import *
+from combate import Combate
 
 class Game:
     def __init__(self):
@@ -39,9 +40,10 @@ class Game:
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
                 
         self.spawn_points = [(1800, 900), (1800, 950)]
-        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points)
+        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points, (196, 256))
         self.collision_sprites.add(self.boss.collision_sprite)
         
+        self.combate = Combate(self.player, self.boss)
 
     def run(self):
         while self.running:
@@ -52,7 +54,8 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-        
+                self.player.handle_mouse_input(event)
+
                 #boss
                 self.boss.collision_sprite.update()
                 self.boss.handle_event(event)
@@ -62,6 +65,8 @@ class Game:
 
             # update 
             self.all_sprites.update(dt)
+            if self.player.in_combat:
+                self.combate.update(dt)
 
             # draw
             self.screen.fill('black')

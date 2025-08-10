@@ -28,17 +28,21 @@ class Weakspot(pygame.sprite.Sprite):
         super().__init__(groups)
         self.boss = boss
         self.direction = direction
-        self.image = pygame.Surface((30, 50))  # tamanho inicial
+        self.width = 20
+        self.height = 20
+        self.image = pygame.Surface((self.width, self.height))  # tamanho inicial
         self.image.fill((255, 0, 0))
         self.image.set_alpha(255)
         self.rect = self.image.get_rect()
+        self.offset = 35
+
         self.update_position(direction)
 
     def update_position(self, direction):
         if direction in ('left', 'right'):
-            self.image = pygame.Surface((30, 50))
+            self.image = pygame.Surface((self.width, self.height))
         else:  # up ou down
-            self.image = pygame.Surface((50, 30))
+            self.image = pygame.Surface((self.height, self.width))
 
         self.image.fill((255, 0, 0))
         self.image.set_alpha(255)
@@ -47,16 +51,16 @@ class Weakspot(pygame.sprite.Sprite):
 
         if direction == 'left':
             self.rect.midleft = self.boss.rect.midright
-            self.rect.x -= 35
+            self.rect.x -= self.offset
         elif direction == 'right':
             self.rect.midright = self.boss.rect.midleft
-            self.rect.x += 35
+            self.rect.x += self.offset
         elif direction == 'up':
             self.rect.midtop = self.boss.rect.midbottom
-            self.rect.y -= 35
+            self.rect.y -= self.offset
         elif direction == 'down':
             self.rect.midbottom = self.boss.rect.midtop
-            self.rect.y += 35
+            self.rect.y += self.offset
 
     def on_hit(self, amount):
         if self.boss.is_player_behind():
