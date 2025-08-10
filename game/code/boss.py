@@ -32,12 +32,12 @@ class BossBase(pygame.sprite.Sprite):
         # colisão
         self.collision_rect = self.rect.inflate(-20, -20)
         self.collision_sprite = BossCollisionSprite(self)
-        
+        self.true_state = 'down'
+        self.weakspot = Weakspot(self, groups, self.true_state)
 
-        self.phase = 1  # Começa na fase 1
 
         #Boss Fight features
-
+        self.phase = 1  # Começa na fase 1
         self.spawn_points = spawn_points  # lista de posições possíveis para teleporte
 
         # Controle de teleporte
@@ -47,6 +47,30 @@ class BossBase(pygame.sprite.Sprite):
         # Efeito de desaparecimento
         self.visible = True
         self.fade_time = 20  # tempo invisível antes de reaparecer
+
+    #Combate methods
+    def is_alive(self):
+        return self.health > 0
+    
+    def take_damage(self, amount, is_weak=False):
+        if is_weak:
+            amount *= 2  # dano dobrado no ponto fraco
+        self.health -= amount
+        print(f"Boss HP: {self.health}")
+
+    def is_player_behind(self):
+        dx = self.player.rect.centerx - self.rect.centerx
+        dy = self.player.rect.centery - self.rect.centery
+
+        if self.true_state == "right":
+            return dx < 0  # player está à esquerda
+        elif self.true_state == "left":
+            return dx > 0  # player está à direita
+        elif self.true_state == "up":
+            return dy > 0  # player está abaixo
+        elif self.true_state == "down":
+            return dy < 0  # player está acima
+
 
     def choose_state(self):
         estados_movendo = ['left', 'right', 'up', 'down']
@@ -58,6 +82,8 @@ class BossBase(pygame.sprite.Sprite):
 
     def get_state(self):
         self.state = self.choose_state()
+        self.true_state = self.state.replace('_idle', '')  # remove idle para lógica de movimento
+        print(f"[DEBUG] Novo estado escolhido: {self.state}")
 
     def animate(self, dt):
         frames = self.frames[self.state]
@@ -171,6 +197,7 @@ class BossBase(pygame.sprite.Sprite):
         #print(f"[DEBUG] Boss update called, dt={dt}, pos={self.rect.center}, health={self.health}")
         now = pygame.time.get_ticks()
         self.animate(dt)
+        self.weakspot.update_position(self.true_state)
         
         # Teste: ataque sempre que estiver perto
         if self.rect.colliderect(self.player.rect):
