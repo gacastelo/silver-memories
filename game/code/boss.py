@@ -6,13 +6,25 @@ class BossBase(pygame.sprite.Sprite):
 
     def __init__(self, pos, groups, player, spawn_points, name="Boss", health=1000, speed=50):
         super().__init__(groups)
+        # atributos do boss
+        self.name = name
+        self.health = health
+        self.max_health = health
+        self.speed = speed
+        self.player = player
+        self.file_name = remove_accents(self.name.lower()).replace(" ", "_") 
 
-        self.file_name = remove_accents(name.lower()).replace(" ", "_")
+        self.load_images()  # Carrega as imagens do boss depois de tudo carregado
+        self.state = 'down_idle'
+        self.frame_index = 0
+        self.previous_state = self.state
+        self.animation_speed = 6  # frames por segundo
+
         # carrega imagem original
         original_image = pygame.image.load(join('images', 'bosses', f'{self.file_name}', 'state_null.png')).convert_alpha()
 
-        # redimensiona para 150x150
-        self.image = pygame.transform.smoothscale(original_image, (150, 150))
+        # redimensiona para 128x128
+        self.image = pygame.transform.smoothscale(original_image, (128, 128))
 
         # define posição
         self.rect = self.image.get_rect(center=pos)
@@ -21,13 +33,6 @@ class BossBase(pygame.sprite.Sprite):
         self.collision_rect = self.rect.inflate(-20, -20)
         self.collision_sprite = BossCollisionSprite(self)
         
-        
-        # atributos do boss
-        self.name = name
-        self.health = health
-        self.max_health = health
-        self.speed = speed
-        self.player = player
 
         self.phase = 1  # Começa na fase 1
 
@@ -36,12 +41,31 @@ class BossBase(pygame.sprite.Sprite):
         self.spawn_points = spawn_points  # lista de posições possíveis para teleporte
 
         # Controle de teleporte
-        self.teleport_cooldown = 1000  # ms
+        self.teleport_cooldown = 5000  # ms
         self.last_teleport = pygame.time.get_ticks()
 
         # Efeito de desaparecimento
         self.visible = True
         self.fade_time = 20  # tempo invisível antes de reaparecer
+
+    def choose_state(self):
+        estados_movendo = ['left', 'right', 'up', 'down']
+        estados_idle = [f"{estado}_idle" for estado in estados_movendo]
+        if not self.visible:
+            return random.choice(estados_idle)
+        else:
+            return random.choice(estados_movendo)
+
+    def get_state(self):
+        self.state = self.choose_state()
+
+    def animate(self, dt):
+        frames = self.frames[self.state]
+        if frames:
+            self.frame_index += self.animation_speed * dt
+            if self.frame_index >= len(frames):
+                self.frame_index = 0
+            self.image = frames[int(self.frame_index)]
 
     def collide_with_player(self):
         """Verifica colisão com o jogador"""
@@ -50,6 +74,7 @@ class BossBase(pygame.sprite.Sprite):
     def teleport(self):
         """Teleporta para um ponto aleatório do mapa"""
         self.visible = False  # fica invisível por um instante
+        self.get_state()
         pygame.time.set_timer(pygame.USEREVENT + 1, self.fade_time, loops=1)  # evento para reaparecer
         print(f"[DEBUG] Teleportando... posição antiga: {self.rect.center}")
         new_pos = random.choice(self.spawn_points)
@@ -58,22 +83,27 @@ class BossBase(pygame.sprite.Sprite):
         print(f"[DEBUG] Nova posição: {self.rect.center}")
 
     def load_images(self):
-        self.frames = {'left': [], 'right': [], 'up': [], 'down': []}
-        
+        # Adiciona os estados com idle igual ao player
+        self.frames = {
+            'left': [], 'right': [], 'up': [], 'down': [],
+            'left_idle': [], 'right_idle': [], 'up_idle': [], 'down_idle': []
+        }
+
         for state in self.frames.keys():
-            path = join('images', self.file_name, state)
-            # Apenas tenta carregar se o diretório existir
+            path = join('images', 'bosses', self.file_name, state)
             try:
-                self.frames[state] = [pygame.image.load(join(path, file_name)).convert_alpha() 
-                                      for _, _, file_names in walk(path) for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0]))]
+                self.frames[state] = [
+                    pygame.image.load(join(path, file_name)).convert_alpha()
+                    for _, _, file_names in walk(path)
+                    for file_name in sorted(file_names, key=lambda name: int(name.split('.')[0]))
+                ]
             except FileNotFoundError:
-                 # Se não houver sprites de idle, usa o primeiro frame do movimento
+                # fallback: usa o primeiro frame da versão sem idle
                 if '_idle' in state:
                     base_state = state.replace('_idle', '')
-                    if base_state in self.frames and self.frames[base_state]:
+                    if self.frames[base_state]:
                         self.frames[state] = [self.frames[base_state][0]]
-                    else:
-                        print(f"Aviso: Sprites para '{state}' e '{base_state}' não encontrados.")
+
 
 
     def take_damage(self, amount):
@@ -108,9 +138,25 @@ class BossBase(pygame.sprite.Sprite):
         pass
     
     def draw(self, surface, offset=(0, 0)):
+        dt = pygame.time.get_ticks() / 1000  # tempo em segundos
+        moving = self.state not in ['left_idle', 'right_idle', 'up_idle', 'down_idle']
         if self.visible:
             pos = (self.rect.left + offset[0], self.rect.top + offset[1])
             surface.blit(self.image, pos)
+            if moving:
+                    self.frame_index += (self.speed/50) * dt
+                    current_frames = self.frames[self.state]
+                    if current_frames:
+                        self.image = current_frames[int(self.frame_index) % len(current_frames)]
+            else:
+                self.frame_index = 0
+                idle_state = self.state.split('_')[0] + '_idle'
+                if idle_state in self.frames and self.frames[idle_state]:
+                    self.image = self.frames[idle_state][0]
+                else:
+                    self.image = self.frames[self.state.replace('_idle', '')][0]
+
+
         self.debug_draw(surface, offset)
 
     def debug_draw(self, surface, offset):
@@ -124,6 +170,7 @@ class BossBase(pygame.sprite.Sprite):
     def update(self, dt):
         #print(f"[DEBUG] Boss update called, dt={dt}, pos={self.rect.center}, health={self.health}")
         now = pygame.time.get_ticks()
+        self.animate(dt)
         
         # Teste: ataque sempre que estiver perto
         if self.rect.colliderect(self.player.rect):
@@ -131,7 +178,7 @@ class BossBase(pygame.sprite.Sprite):
 
         # Verifica se é hora de teleportar
         if now - self.last_teleport >= self.teleport_cooldown:
-            self.teleport()
+            self.teleport()     
             self.last_teleport = now
 
     def draw_health_bar(self, surface):
