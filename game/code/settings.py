@@ -1,11 +1,10 @@
 import pygame 
 from os.path import join 
 from os import walk
-import pygame_gui
 import random
 import unicodedata
 
-WINDOW_WIDTH, WINDOW_HEIGHT = 1280,720 
+WINDOW_WIDTH, WINDOW_HEIGHT = 1440, 900 
 TILE_SIZE = 64
 
 def remove_accents(input_str):

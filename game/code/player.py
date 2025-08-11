@@ -36,7 +36,7 @@ class Player(pygame.sprite.Sprite):
 
         # combate atributos
         self.can_attack = True
-        self.in_combat = True #para Debug
+        self.in_combat = True #para Debug trocar para True
         self.__health = 3
         self.max_health = 3
         self.damage = 10
@@ -45,7 +45,7 @@ class Player(pygame.sprite.Sprite):
     def dar_dano(self):
         return self.damage
     
-    def receber_dano(self):
+    def take_damage(self):
         if self.is_alive():
             self.__health -= 1
 

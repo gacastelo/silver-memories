@@ -12,6 +12,7 @@ class BossBase(pygame.sprite.Sprite):
         self.max_health = health
         self.speed = speed
         self.player = player
+        self.damage = 1
         self.file_name = remove_accents(self.name.lower()).replace(" ", "_") 
 
         self.load_images()  # Carrega as imagens do boss depois de tudo carregado
@@ -43,7 +44,10 @@ class BossBase(pygame.sprite.Sprite):
 
         self.hit_cooldown = 1000  # ms
         self.last_hit_time = 0
-    
+
+        self.attacking = False
+        self.attack_cooldown = 1000  # ms
+        self.last_normal_attack = pygame.time.get_ticks()
 
         # Controle de teleporte
         self.teleport_cooldown = 5000  # ms
@@ -52,6 +56,7 @@ class BossBase(pygame.sprite.Sprite):
         # Efeito de desaparecimento
         self.visible = True
         self.fade_time = 20  # tempo invisível antes de reaparecer
+
 
     #Combate methods
     def is_alive(self):
@@ -148,6 +153,8 @@ class BossBase(pygame.sprite.Sprite):
 
     def die(self):
         print(f"{self.name} foi derrotado!")
+        self.weakspot.kill()
+        self.collision_sprite.kill()
         self.kill()
 
     def attack(self):
@@ -183,6 +190,8 @@ class BossBase(pygame.sprite.Sprite):
 
     def debug_draw(self, surface, offset):
         pygame.draw.rect(surface, (255, 255, 0), self.rect.move(offset), 2)
+        if self.attacking:
+            pygame.draw.rect(surface, (255, 0, 255), self.attack_zone, 1)
 
 
     def handle_event(self, event):
@@ -191,6 +200,8 @@ class BossBase(pygame.sprite.Sprite):
 
     def update(self, dt):
         #print(f"[DEBUG] Boss update called, dt={dt}, pos={self.rect.center}, health={self.health}")
+        if not self.is_alive():
+            self.die()
         now = pygame.time.get_ticks()
         self.animate(dt)
         self.weakspot.update_position(self.true_state)
@@ -203,6 +214,11 @@ class BossBase(pygame.sprite.Sprite):
         if now - self.last_teleport >= self.teleport_cooldown:
             self.teleport()     
             self.last_teleport = now
+        
+        # Verifica se o cooldown de ataque acabou
+        if now - self.last_normal_attack >= self.attack_cooldown:
+            self.attacking = False
+            self.last_normal_attack = now
 
     def draw_health_bar(self, surface):
         """Desenha barra de vida do boss no topo da tela"""
@@ -225,9 +241,42 @@ class BossBase(pygame.sprite.Sprite):
 class GuardiaoAstra(BossBase):
     def __init__(self, pos, groups, player, spawn_points, size):
         super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40)
+        self.attack_range = 100
 
     def attack(self):
-        print(f"{self.name} atacou!")
+        if self.attacking or self.is_player_behind():
+            print("[DEBUG] Boss não ataca.")
+            return
+        self.attacking = True
+        if self.true_state == "right":
+            self.attack_zone = pygame.Rect(
+                self.rect.right,                 # começa ao lado direito do boss
+                self.rect.top,
+                self.attack_range,
+                self.rect.height
+            )
+        elif self.true_state == "left":
+            self.attack_zone = pygame.Rect(
+                self.rect.left - self.attack_range,
+                self.rect.top,
+                self.attack_range,
+                self.rect.height
+            )
+        elif self.true_state == "up":
+            self.attack_zone = pygame.Rect(
+                self.rect.left,
+                self.rect.top - self.attack_range,
+                self.rect.width,
+                self.attack_range
+            )
+        elif self.true_state == "down":
+            self.attack_zone = pygame.Rect(
+                self.rect.left,
+                self.rect.bottom,
+                self.rect.width,
+                self.attack_range
+            )
+
 
     def special_attack(self):
         random.choice([self.espinhos, self.lama, self.vinhas]).__call__(self)
