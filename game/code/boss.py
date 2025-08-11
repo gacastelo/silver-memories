@@ -43,6 +43,7 @@ class BossBase(pygame.sprite.Sprite):
 
         self.hit_cooldown = 1000  # ms
         self.last_hit_time = 0
+    
 
         # Controle de teleporte
         self.teleport_cooldown = 5000  # ms
@@ -195,7 +196,7 @@ class BossBase(pygame.sprite.Sprite):
         self.weakspot.update_position(self.true_state)
         
         # Teste: ataque sempre que estiver perto
-        if self.rect.colliderect(self.player.rect):
+        if self.collision_rect.colliderect(self.player.rect) and not self.is_player_behind():
             self.attack()
 
         # Verifica se é hora de teleportar
@@ -225,11 +226,20 @@ class GuardiaoAstra(BossBase):
     def __init__(self, pos, groups, player, spawn_points, size):
         super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40)
 
+    def attack(self):
+        print(f"{self.name} atacou!")
+
     def special_attack(self):
-        if self.phase == 2:
-            print("Guardião invoca vinhas para prender o jogador!")
-        elif self.phase == 3:
-            print("Guardião libera lodo tóxico que reduz velocidade!")
+        random.choice([self.espinhos, self.lama, self.vinhas]).__call__(self)
+
+    def espinhos(self):
+        print(f"{self.name} lancou espinhos!")
+    
+    def lama(self):
+        print(f"{self.name} lancou lama!")
+    
+    def vinhas(self):
+        print(f"{self.name} lancou vinhas!")
     
     def take_damage(self, amount, is_weak):
         if is_weak:

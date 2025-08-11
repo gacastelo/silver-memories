@@ -22,7 +22,7 @@ class Combate:
         damage = self.player.dar_dano()
         print(f"[DEBUG] Player atacando! Dano base: {damage}")
 
-        weakspot_hit = self.player.attack_hitbox.colliderect(self.boss.weakspot.rect)
+        weakspot_hit = self.player.attack_hitbox.colliderect(self.boss.weakspot.rect) and self.boss.is_player_behind()
         body_hit = self.player.attack_hitbox.colliderect(self.boss.rect)
 
         print(f"[DEBUG] Colisão ponto fraco: {weakspot_hit}")
@@ -37,7 +37,7 @@ class Combate:
             print("[DEBUG] Boss ainda em invulnerabilidade.")
             return
 
-        if weakspot_hit and self.boss.is_player_behind():
+        if weakspot_hit:
             print("[DEBUG] Golpe no ponto fraco e player está atrás!")
             self.boss.take_damage(damage, True)
             self.boss.last_hit_time = now
