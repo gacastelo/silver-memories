@@ -47,3 +47,6 @@ class Combate:
             self.boss.last_hit_time = now
         else:
             print("[DEBUG] Ataque não acertou o boss.")
+
+    def check_boss_hit(self):
+        pass

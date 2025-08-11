@@ -1,10 +1,11 @@
 from settings import *
 from sprites import *
+from hitboxes import *
 
 class BossBase(pygame.sprite.Sprite):
 
 
-    def __init__(self, pos, groups, player, spawn_points, size, name="Boss", health=1000, speed=50):
+    def __init__(self, pos, groups, player, spawn_points, size, name="Boss", health=1000, speed=50, attack_range=100):
         super().__init__(groups)
         # atributos do boss
         self.name = name
@@ -44,6 +45,12 @@ class BossBase(pygame.sprite.Sprite):
 
         self.hit_cooldown = 1000  # ms
         self.last_hit_time = 0
+
+        self.attack_range = attack_range
+
+        self.attack_hitbox_width = 100
+        self.attack_hitbox_height = 200
+        self.attack_hitbox = self.rect.inflate(self.attack_hitbox_width, self.attack_hitbox_height)
 
         self.attacking = False
         self.attack_cooldown = 1000  # ms
@@ -116,6 +123,15 @@ class BossBase(pygame.sprite.Sprite):
         new_pos = random.choice(self.spawn_points)
         self.rect.center = new_pos
         self.collision_rect.center = new_pos  # atualiza a colisão
+        if self.true_state == "right":
+            self.attack_hitbox.center = (new_pos[0] + self.attack_range, new_pos[1])
+        elif self.true_state == "left":
+            self.attack_hitbox.center = (new_pos[0] - self.attack_range, new_pos[1])
+        elif self.true_state == "up":
+            self.attack_hitbox.center = (new_pos[0], new_pos[1] - self.attack_range)
+        elif self.true_state == "down":
+            self.attack_hitbox.center = (new_pos[0], new_pos[1] + self.attack_range)
+
         print(f"[DEBUG] Nova posição: {self.rect.center}")
 
     def load_images(self):
@@ -191,7 +207,7 @@ class BossBase(pygame.sprite.Sprite):
     def debug_draw(self, surface, offset):
         pygame.draw.rect(surface, (255, 255, 0), self.rect.move(offset), 2)
         if self.attacking:
-            pygame.draw.rect(surface, (255, 0, 255), self.attack_zone, 1)
+            pygame.draw.rect(surface, (255, 255, 255), self.attack_hitbox.move(offset), 2)
 
 
     def handle_event(self, event):
@@ -202,13 +218,17 @@ class BossBase(pygame.sprite.Sprite):
         #print(f"[DEBUG] Boss update called, dt={dt}, pos={self.rect.center}, health={self.health}")
         if not self.is_alive():
             self.die()
-        now = pygame.time.get_ticks()
         self.animate(dt)
         self.weakspot.update_position(self.true_state)
         
         # Teste: ataque sempre que estiver perto
-        if self.collision_rect.colliderect(self.player.rect) and not self.is_player_behind():
+        if self.attack_hitbox.colliderect(self.player.damage_hitbox):
             self.attack()
+
+        self.cooldowns()
+    
+    def cooldowns(self):
+        now = pygame.time.get_ticks()
 
         # Verifica se é hora de teleportar
         if now - self.last_teleport >= self.teleport_cooldown:
@@ -238,44 +258,18 @@ class BossBase(pygame.sprite.Sprite):
         text = font.render(self.name, True, (255, 255, 255))
         surface.blit(text, (bar_x, bar_y - 25))
 
+
 class GuardiaoAstra(BossBase):
     def __init__(self, pos, groups, player, spawn_points, size):
-        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40)
-        self.attack_range = 100
+        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=100)
 
     def attack(self):
-        if self.attacking or self.is_player_behind():
-            print("[DEBUG] Boss não ataca.")
+        if self.attacking:
+            print("[DEBUG] Boss atacando.")
             return
+
         self.attacking = True
-        if self.true_state == "right":
-            self.attack_zone = pygame.Rect(
-                self.rect.right,                 # começa ao lado direito do boss
-                self.rect.top,
-                self.attack_range,
-                self.rect.height
-            )
-        elif self.true_state == "left":
-            self.attack_zone = pygame.Rect(
-                self.rect.left - self.attack_range,
-                self.rect.top,
-                self.attack_range,
-                self.rect.height
-            )
-        elif self.true_state == "up":
-            self.attack_zone = pygame.Rect(
-                self.rect.left,
-                self.rect.top - self.attack_range,
-                self.rect.width,
-                self.attack_range
-            )
-        elif self.true_state == "down":
-            self.attack_zone = pygame.Rect(
-                self.rect.left,
-                self.rect.bottom,
-                self.rect.width,
-                self.attack_range
-            )
+        
 
 
     def special_attack(self):
