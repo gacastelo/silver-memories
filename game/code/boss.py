@@ -21,7 +21,6 @@ class BossBase(pygame.sprite.Sprite):
         self.frame_index = 0
         self.previous_state = self.state
         self.animation_speed = 6  # frames por segundo
-
         # carrega imagem original
         original_image = pygame.image.load(join('images', 'bosses', f'{self.file_name}', 'state_null.png')).convert_alpha()
 
@@ -48,21 +47,30 @@ class BossBase(pygame.sprite.Sprite):
 
         self.attack_range = attack_range
 
-        self.attack_hitbox_width = 100
-        self.attack_hitbox_height = 200
-        self.attack_hitbox = self.rect.inflate(self.attack_hitbox_width, self.attack_hitbox_height)
+        self.attack_hitbox_width = 300
+        self.attack_hitbox_height = 400
+        self.atk_horizontal_size = (self.attack_hitbox_width, self.attack_hitbox_height)
+        self.atk_vertical_size = (self.attack_hitbox_height, self.attack_hitbox_width)
+        self.attack_hitbox = pygame.Rect(0, 0, self.attack_hitbox_width, self.attack_hitbox_height)
 
         self.attacking = False
         self.attack_cooldown = 1000  # ms
         self.last_normal_attack = pygame.time.get_ticks()
 
+        self.special_attacking = False
+        self.special_attack_cooldown = 3000  # ms
+        self.last_special_attack = pygame.time.get_ticks()
+
         # Controle de teleporte
-        self.teleport_cooldown = 5000  # ms
+        self.TELEPORT_SPECIAL_EVENT = pygame.USEREVENT + 2
+        self.teleport_cooldown = 2000  # ms
         self.last_teleport = pygame.time.get_ticks()
 
         # Efeito de desaparecimento
         self.visible = True
         self.fade_time = 20  # tempo invisível antes de reaparecer
+
+        # DEBUG
 
 
     #Combate methods
@@ -116,6 +124,7 @@ class BossBase(pygame.sprite.Sprite):
 
     def teleport(self):
         """Teleporta para um ponto aleatório do mapa"""
+        pygame.time.set_timer(self.TELEPORT_SPECIAL_EVENT, 200, loops=1) #loops igual a quantidade de ataques (com um cooldown de 200ms entre cada) após um teleport
         self.visible = False  # fica invisível por um instante
         self.get_state()
         pygame.time.set_timer(pygame.USEREVENT + 1, self.fade_time, loops=1)  # evento para reaparecer
@@ -123,14 +132,21 @@ class BossBase(pygame.sprite.Sprite):
         new_pos = random.choice(self.spawn_points)
         self.rect.center = new_pos
         self.collision_rect.center = new_pos  # atualiza a colisão
-        if self.true_state == "right":
-            self.attack_hitbox.center = (new_pos[0] + self.attack_range, new_pos[1])
-        elif self.true_state == "left":
-            self.attack_hitbox.center = (new_pos[0] - self.attack_range, new_pos[1])
-        elif self.true_state == "up":
-            self.attack_hitbox.center = (new_pos[0], new_pos[1] - self.attack_range)
-        elif self.true_state == "down":
-            self.attack_hitbox.center = (new_pos[0], new_pos[1] + self.attack_range)
+        if self.attack_range != None:
+            if self.true_state in ("right", "left"):
+                self.attack_hitbox.size = self.atk_horizontal_size
+            elif self.true_state in ("up", "down"):
+                self.attack_hitbox.size = self.atk_vertical_size
+
+            # Atualiza a posição do hitbox de dano para coincidir com a nova posição
+            if self.true_state == "right":
+                self.attack_hitbox.center = (new_pos[0] + self.attack_range, new_pos[1])
+            elif self.true_state == "left":
+                self.attack_hitbox.center = (new_pos[0] - self.attack_range, new_pos[1])
+            elif self.true_state == "up":
+                self.attack_hitbox.center = (new_pos[0], new_pos[1] - self.attack_range)
+            elif self.true_state == "down":
+                self.attack_hitbox.center = (new_pos[0], new_pos[1] + self.attack_range)
 
         print(f"[DEBUG] Nova posição: {self.rect.center}")
 
@@ -206,13 +222,15 @@ class BossBase(pygame.sprite.Sprite):
 
     def debug_draw(self, surface, offset):
         pygame.draw.rect(surface, (255, 255, 0), self.rect.move(offset), 2)
-        if self.attacking:
-            pygame.draw.rect(surface, (255, 255, 255), self.attack_hitbox.move(offset), 2)
+
+        pygame.draw.rect(surface, (255, 255, 255), self.attack_hitbox.move(offset), 2)
 
 
     def handle_event(self, event):
         if event.type == pygame.USEREVENT + 1:
             self.visible = True
+        if event.type == self.TELEPORT_SPECIAL_EVENT:
+            self.special_attack()
 
     def update(self, dt):
         #print(f"[DEBUG] Boss update called, dt={dt}, pos={self.rect.center}, health={self.health}")
@@ -223,6 +241,7 @@ class BossBase(pygame.sprite.Sprite):
         
         # Teste: ataque sempre que estiver perto
         if self.attack_hitbox.colliderect(self.player.damage_hitbox):
+            print("[DEBUG] Player na area de ataque!")
             self.attack()
 
         self.cooldowns()
@@ -239,6 +258,11 @@ class BossBase(pygame.sprite.Sprite):
         if now - self.last_normal_attack >= self.attack_cooldown:
             self.attacking = False
             self.last_normal_attack = now
+        
+        # Verifica se o cooldown de ataque especial acabou
+        if now - self.last_special_attack >= self.special_attack_cooldown:
+            self.special_attacking = False
+            self.last_special_attack = now
 
     def draw_health_bar(self, surface):
         """Desenha barra de vida do boss no topo da tela"""
@@ -261,19 +285,13 @@ class BossBase(pygame.sprite.Sprite):
 
 class GuardiaoAstra(BossBase):
     def __init__(self, pos, groups, player, spawn_points, size):
-        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=100)
+        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=None)
 
     def attack(self):
-        if self.attacking:
-            print("[DEBUG] Boss atacando.")
-            return
-
-        self.attacking = True
+        pass
         
-
-
     def special_attack(self):
-        random.choice([self.espinhos, self.lama, self.vinhas]).__call__(self)
+        random.choice([self.espinhos, self.lama, self.vinhas]).__call__()
 
     def espinhos(self):
         print(f"{self.name} lancou espinhos!")

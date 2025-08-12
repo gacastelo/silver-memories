@@ -44,6 +44,7 @@ class Game:
         self.collision_sprites.add(self.boss.collision_sprite)
         
         self.combate = Combate(self.player, self.boss)
+        self.combate.start_combat()
 
     def run(self):
         while self.running:

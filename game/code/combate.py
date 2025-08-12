@@ -48,5 +48,5 @@ class Combate:
         else:
             print("[DEBUG] Ataque não acertou o boss.")
 
-    def check_boss_hit(self):
+    def check_boss_especial_hit(self):
         pass
