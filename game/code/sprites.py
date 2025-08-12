@@ -67,9 +67,29 @@ class Weakspot(pygame.sprite.Sprite):
             print("[DEBUG] Ponto fraco atingido!")
             self.boss.take_damage(amount, is_weak=True)
 
+class EspinhoShadow(pygame.sprite.Sprite):
+    def __init__(self, pos, groups):
+        super().__init__(groups)
+        self.image = pygame.Surface((25, 16))
+        self.image.fill((150, 255, 0))  # verde
+        self.rect = self.image.get_rect(center=pos)
+
+        self.spawn_time = pygame.time.get_ticks()
+        self.pos = pos
+        self.groups_ = groups  # salva referência aos grupos
+
+    def update(self,dt):
+        now = pygame.time.get_ticks()
+        if now - self.spawn_time >= 100:  # 100ms
+            Espinho(self.pos, self.groups_)
+            self.kill()
+
+
 class Espinho(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
         super().__init__(groups)
-        self.image = pygame.Surface((16, 16))
-        self.image.fill((150, 75, 0))  # marrom
-        self.rect = self.image.get_rect(center=pos)
+        margemy = 20
+        self.position = (pos[0], pos[1]-margemy)
+        self.image = pygame.Surface((20, 25))
+        self.image.fill((150, 51, 0))  # marrom
+        self.rect = self.image.get_rect(center=self.position)

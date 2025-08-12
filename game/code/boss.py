@@ -291,9 +291,9 @@ class GuardiaoAstra(BossBase):
         pass
         
     def special_attack(self):
-        random.choice([self.espinhos, self.lama, self.vinhas]).__call__()
+        random.choice([self.espinhos]).__call__() #, self.lama, self.vinhas
 
-    def espinhos(self, quantidade=5, raio=100):
+    def espinhos(self, quantidade=5, raio=250):
         for _ in range(quantidade):
             # Gera offsets aleatórios dentro do raio
             offset_x = random.randint(-raio, raio)
@@ -303,8 +303,8 @@ class GuardiaoAstra(BossBase):
             pos_x = self.player.rect.centerx + offset_x
             pos_y = self.player.rect.centery + offset_y
 
-            Espinho((pos_x, pos_y), self.groups)
-    
+            EspinhoShadow((pos_x, pos_y), self.groups)
+            
     def lama(self):
         print(f"{self.name} lancou lama!")
     
