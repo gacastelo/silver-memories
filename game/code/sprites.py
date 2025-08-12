@@ -66,3 +66,10 @@ class Weakspot(pygame.sprite.Sprite):
         if self.boss.is_player_behind():
             print("[DEBUG] Ponto fraco atingido!")
             self.boss.take_damage(amount, is_weak=True)
+
+class Espinho(pygame.sprite.Sprite):
+    def __init__(self, pos, groups):
+        super().__init__(groups)
+        self.image = pygame.Surface((16, 16))
+        self.image.fill((150, 75, 0))  # marrom
+        self.rect = self.image.get_rect(center=pos)

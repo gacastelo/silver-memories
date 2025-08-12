@@ -286,15 +286,24 @@ class BossBase(pygame.sprite.Sprite):
 class GuardiaoAstra(BossBase):
     def __init__(self, pos, groups, player, spawn_points, size):
         super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=None)
-
+        self.groups = groups
     def attack(self):
         pass
         
     def special_attack(self):
         random.choice([self.espinhos, self.lama, self.vinhas]).__call__()
 
-    def espinhos(self):
-        print(f"{self.name} lancou espinhos!")
+    def espinhos(self, quantidade=5, raio=100):
+        for _ in range(quantidade):
+            # Gera offsets aleatórios dentro do raio
+            offset_x = random.randint(-raio, raio)
+            offset_y = random.randint(-raio, raio)
+
+            # Posição final do espinho
+            pos_x = self.player.rect.centerx + offset_x
+            pos_y = self.player.rect.centery + offset_y
+
+            Espinho((pos_x, pos_y), self.groups)
     
     def lama(self):
         print(f"{self.name} lancou lama!")
