@@ -7,6 +7,7 @@ class BossBase(pygame.sprite.Sprite):
 
     def __init__(self, pos, groups, player, spawn_points, size, name="Boss", health=1000, speed=50, attack_range=100):
         super().__init__(groups)
+        self.damage_sprite_especial = pygame.sprite.Group()
         # atributos do boss
         self.name = name
         self.health = health
@@ -291,7 +292,7 @@ class GuardiaoAstra(BossBase):
         pass
         
     def special_attack(self):
-        random.choice([self.espinhos]).__call__() #, self.lama, self.vinhas
+        random.choice([self.lama]).__call__() #, , self.vinhas, self.espinhos
 
     def espinhos(self, quantidade=5, raio=250):
         for _ in range(quantidade):
@@ -303,10 +304,13 @@ class GuardiaoAstra(BossBase):
             pos_x = self.player.rect.centerx + offset_x
             pos_y = self.player.rect.centery + offset_y
 
-            EspinhoShadow((pos_x, pos_y), self.groups)
+            EspinhoShadow((pos_x, pos_y), [self.groups, self.damage_sprite_especial])
             
     def lama(self):
         print(f"{self.name} lancou lama!")
+        pos_x = self.rect.centerx
+        pos_y = self.rect.centery
+        Lama((pos_x, pos_y), self.groups, self.player)
     
     def vinhas(self):
         print(f"{self.name} lancou vinhas!")

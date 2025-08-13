@@ -13,6 +13,10 @@ class CollisionSprite(pygame.sprite.Sprite):
         self.image = surf
         self.rect = self.image.get_frect(topleft = pos)
 
+
+# Boss
+
+
 class BossCollisionSprite(pygame.sprite.Sprite):
     def __init__(self, boss):
         super().__init__()
@@ -103,4 +107,29 @@ class Espinho(pygame.sprite.Sprite):
     def update(self,dt):
         now = pygame.time.get_ticks()
         if now - self.spawn_time >= 1000:  # 1s
+            self.kill()
+
+class Lama(pygame.sprite.Sprite):
+    def __init__(self, pos, groups, player):
+        super().__init__(groups)
+        self.player = player
+        self.width = 500
+        self.height = 350
+        self.image = pygame.Surface((self.width, self.height))
+        self.image.fill((0, 0, 255))  # azul
+        self.rect = self.image.get_rect(center=pos)
+
+        self.spawn_time = pygame.time.get_ticks()
+    
+    def player_hit(self):
+        if self.player.rect.colliderect(self.rect):
+            self.player.speed = 100
+        else:
+            self.player.speed = 500
+
+
+    def update(self,dt):
+        now = pygame.time.get_ticks()
+        self.player_hit()
+        if now - self.spawn_time >= 3000:  # 1s
             self.kill()
