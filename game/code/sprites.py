@@ -70,7 +70,9 @@ class Weakspot(pygame.sprite.Sprite):
 class EspinhoShadow(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
         super().__init__(groups)
-        self.image = pygame.Surface((25, 16))
+        self.width = 30
+        self.height = 16
+        self.image = pygame.Surface((self.width, self.height))
         self.image.fill((150, 255, 0))  # verde
         self.rect = self.image.get_rect(center=pos)
 
@@ -80,7 +82,7 @@ class EspinhoShadow(pygame.sprite.Sprite):
 
     def update(self,dt):
         now = pygame.time.get_ticks()
-        if now - self.spawn_time >= 100:  # 100ms
+        if now - self.spawn_time >= 400:  # 100ms
             Espinho(self.pos, self.groups_)
             self.kill()
 
@@ -88,8 +90,17 @@ class EspinhoShadow(pygame.sprite.Sprite):
 class Espinho(pygame.sprite.Sprite):
     def __init__(self, pos, groups):
         super().__init__(groups)
-        margemy = 20
+        margemy = 27
         self.position = (pos[0], pos[1]-margemy)
-        self.image = pygame.Surface((20, 25))
+        self.width = 25
+        self.height = 50
+        self.image = pygame.Surface((self.width, self.height))
         self.image.fill((150, 51, 0))  # marrom
         self.rect = self.image.get_rect(center=self.position)
+
+        self.spawn_time = pygame.time.get_ticks()
+    
+    def update(self,dt):
+        now = pygame.time.get_ticks()
+        if now - self.spawn_time >= 1000:  # 1s
+            self.kill()
