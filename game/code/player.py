@@ -10,6 +10,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=pos)
         self.hitbox_rect = self.rect.inflate(-90, -75)
         self.damage_hitbox = self.rect.inflate(-40,-40)  # Retângulo para o hitbox de dano
+        self.foot_rect = self.rect.inflate(-50, -100)
 
         # movement 
         self.direction = pygame.Vector2()   
@@ -24,6 +25,7 @@ class Player(pygame.sprite.Sprite):
         self.attack_hitbox = None  # retângulo para o ataque
 
         # escudo
+        self.pode_defender = True
         self.shield_active = False
         self.shield_duration = 500 # Duração que o escudo fica ativo
         self.shield_time = None
@@ -134,7 +136,7 @@ class Player(pygame.sprite.Sprite):
             self.sword_frame_index = 0
         
         # Ativar escudo com botão direito
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and self.pode_defender:
             self.shield_active = True
             self.shield_time = pygame.time.get_ticks()
             self.direction = pygame.Vector2()
@@ -223,6 +225,8 @@ class Player(pygame.sprite.Sprite):
 
         # Atualiza a posição do hitbox de dano para coincidir com o hitbox do jogador
         self.damage_hitbox.center = self.hitbox_rect.center
+
+        self.foot_rect.center = self.hitbox_rect.center + pygame.math.Vector2(0, 50)
 
     #def collision(self, direction): #COLISÃO ANTIGA SAVED 
     #   for sprite in self.collision_sprites:
@@ -345,6 +349,8 @@ class Player(pygame.sprite.Sprite):
         # Desenha as hitboxes de todos os sprites de colisão
         for sprite in self.collision_sprites:
             pygame.draw.rect(surface, 'purple', sprite.rect.move(offset), 2)
+
+        pygame.draw.rect(surface, 'pink', self.foot_rect.move(offset), 2)
 
     def cooldowns(self):
         now = pygame.time.get_ticks()

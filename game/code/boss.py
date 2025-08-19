@@ -292,7 +292,8 @@ class GuardiaoAstra(BossBase):
         pass
         
     def special_attack(self):
-        random.choice([self.lama]).__call__() #, , self.vinhas, self.espinhos
+        random.choice([self.espinhos, self.lama, self.vinhas]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, 
+
 
     def espinhos(self, quantidade=5, raio=250):
         for _ in range(quantidade):
@@ -304,7 +305,7 @@ class GuardiaoAstra(BossBase):
             pos_x = self.player.rect.centerx + offset_x
             pos_y = self.player.rect.centery + offset_y
 
-            EspinhoShadow((pos_x, pos_y), [self.groups, self.damage_sprite_especial])
+            EspinhoShadow((pos_x, pos_y), [self.groups, self.damage_sprite_especial], self.player)
             
     def lama(self):
         print(f"{self.name} lancou lama!")
@@ -314,6 +315,8 @@ class GuardiaoAstra(BossBase):
     
     def vinhas(self):
         print(f"{self.name} lancou vinhas!")
+        Vinhas(self.groups, self.player)
+        
     
     def take_damage(self, amount, is_weak):
         if is_weak:

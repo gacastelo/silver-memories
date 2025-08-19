@@ -13,7 +13,6 @@ class Combate:
 
     def update(self, dt):
         self.check_player_hit()
-        self.check_boss_especial_hit()
 
 
     def check_player_hit(self):
@@ -49,9 +48,9 @@ class Combate:
         else:
             print("[DEBUG] Ataque não acertou o boss.")
 
-    def check_boss_especial_hit(self):
-        for ataque in self.boss.damage_sprite_especial:
-            if self.player.hitbox_rect.colliderect(ataque.rect):
-                self.player.take_damage()
-                print("[DEBUG] Golpe especial acertou o player.")
-                ataque.kill()
+    #def check_boss_especial_hit(self):
+    #    for ataque in self.boss.damage_sprite_especial:
+    #      
+    #            self.player.take_damage()
+    #            print("[DEBUG] Golpe especial acertou o player.")
+    #            
