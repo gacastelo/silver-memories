@@ -287,12 +287,12 @@ class BossBase(pygame.sprite.Sprite):
 class GuardiaoAstra(BossBase):
     def __init__(self, pos, groups, player, spawn_points, size):
         super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=None)
-        self.groups = groups
+        self.groups_ = groups
     def attack(self):
         pass
         
     def special_attack(self):
-        random.choice([self.espinhos, self.lama, self.vinhas]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, 
+        random.choice([self.coluna]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):
@@ -305,17 +305,17 @@ class GuardiaoAstra(BossBase):
             pos_x = self.player.rect.centerx + offset_x
             pos_y = self.player.rect.centery + offset_y
 
-            EspinhoShadow((pos_x, pos_y), [self.groups, self.damage_sprite_especial], self.player)
+            EspinhoShadow((pos_x, pos_y), [self.groups_, self.damage_sprite_especial], self.player)
             
     def lama(self):
         print(f"{self.name} lancou lama!")
         pos_x = self.rect.centerx
         pos_y = self.rect.centery
-        Lama((pos_x, pos_y), self.groups, self.player)
+        Lama((pos_x, pos_y), self.groups_, self.player)
     
     def vinhas(self):
         print(f"{self.name} lancou vinhas!")
-        Vinhas(self.groups, self.player)
+        Vinhas(self.groups_, self.player)
         
     
     def take_damage(self, amount, is_weak):
@@ -323,4 +323,21 @@ class GuardiaoAstra(BossBase):
             super().take_damage(amount, is_weak)
         else:
             print("Golpe ignorado! Só leva dano no ponto fraco.")
+    
+    # Teste Thalor
+    def coluna(self):
+        raio = 200
+        offset_x = random.randint(-raio, raio)
+        offset_y = random.randint(-raio, raio)
+        # Posição final do espinho
+        pos_x = self.player.rect.centerx + offset_x
+        pos_y = self.player.rect.centery + offset_y
+        print(f"{self.name} lancou coluna!")
+        ColunaAscendenteShadow((pos_x, pos_y), self.groups_, self.player)
 
+
+class GuardiaoThalor(BossBase):
+    def __init__(self, pos, groups, player, spawn_points, size):
+        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Thalor", health=1200, speed=40, attack_range=None)
+        self.groups_ = groups
+    
