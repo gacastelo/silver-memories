@@ -1,6 +1,5 @@
 from settings import * 
-from sprites_guardiao_astra import *
-from sprites_guardiao_thalor import *
+
 
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):

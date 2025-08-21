@@ -1,4 +1,5 @@
 from settings import *
+from sprites import *
 #==========================================#
 
            # Guardião de Thalor
@@ -39,16 +40,24 @@ class ColunaAscendente(pygame.sprite.Sprite):
         self.player = player
         self.dano_ativo = True
         self.duracao_damage = 50
+        self.tempo_colisao = 100
+        self.colisao = False
     
     def update(self,dt):
         
         now = pygame.time.get_ticks()
+
+        if now - self.spawn_time >= self.tempo_colisao:
+            self.colisao = True
 
         if now - self.spawn_time >= self.duracao_damage:
             self.player_hit()
 
         if now - self.spawn_time >= self.duracao:
             self.kill()
+
+        if self.colisao:
+            self.colision_rect = CollisionSprite
     
     def player_hit(self):
         if self.dano_ativo and self.rect.colliderect(self.player.hitbox_rect):

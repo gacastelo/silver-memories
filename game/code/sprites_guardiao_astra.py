@@ -78,9 +78,10 @@ class Vinhas(pygame.sprite.Sprite):
     def __init__(self, groups, player):
         super().__init__(groups)
         self.player = player
-        self.width = 500
-        self.height = 350
-        self.image = pygame.image.load('images/bosses/guardiao_de_astra/vinhas/vinha.png').convert_alpha()
+        self.width = 250
+        self.height = 250
+        self.image_prev = pygame.image.load('images/bosses/guardiao_de_astra/vinhas/'+ str(random.randint(0, 2))+'.png').convert_alpha()
+        self.image = pygame.transform.smoothscale(self.image_prev, (self.width, self.height))
         self.pos = self.player.rect.center
         self.rect = self.image.get_rect(center=self.pos)
         self.break_rect = self.rect.inflate(25, 25)

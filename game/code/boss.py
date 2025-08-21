@@ -1,6 +1,8 @@
 from settings import *
 from sprites import *
 from hitboxes import *
+from sprites_guardiao_astra import *
+from sprites_guardiao_thalor import *
 
 class BossBase(pygame.sprite.Sprite):
 
@@ -292,7 +294,7 @@ class GuardiaoAstra(BossBase):
         pass
         
     def special_attack(self):
-        random.choice([self.coluna]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
+        random.choice([self.vinhas]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):
@@ -306,7 +308,7 @@ class GuardiaoAstra(BossBase):
             pos_y = self.player.rect.centery + offset_y
 
             EspinhoShadow((pos_x, pos_y), [self.groups_, self.damage_sprite_especial], self.player)
-            
+
     def lama(self):
         print(f"{self.name} lancou lama!")
         pos_x = self.rect.centerx
