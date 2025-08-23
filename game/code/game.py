@@ -40,7 +40,7 @@ class Game:
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
                 
         self.spawn_points = [(1800, 900), (1800, 950)]
-        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points, (196, 256))
+        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points, (196, 256), self.collision_sprites)
         self.collision_sprites.add(self.boss.collision_sprite)
         
         self.combate = Combate(self.player, self.boss)
@@ -51,7 +51,7 @@ class Game:
             # dt 
             dt = self.clock.tick(60) / 1000
 
-            # event loop 
+            # event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False

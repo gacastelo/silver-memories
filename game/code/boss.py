@@ -7,8 +7,13 @@ from sprites_guardiao_thalor import *
 class BossBase(pygame.sprite.Sprite):
 
 
-    def __init__(self, pos, groups, player, spawn_points, size, name="Boss", health=1000, speed=50, attack_range=100):
+    def __init__(self, pos, groups, player, spawn_points, size, name="Boss", health=1000, speed=50, attack_range=100, colision_sprite=None):
         super().__init__(groups)
+        # Teste de colisão de ataques(que coisa feia meu deus)
+        print("[DEBUG] colision_sprite recebido no boss:", colision_sprite)
+        self.colision_spriteAttack = colision_sprite
+
+
         self.damage_sprite_especial = pygame.sprite.Group()
         # atributos do boss
         self.name = name
@@ -287,14 +292,14 @@ class BossBase(pygame.sprite.Sprite):
 
 
 class GuardiaoAstra(BossBase):
-    def __init__(self, pos, groups, player, spawn_points, size):
-        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=None)
+    def __init__(self, pos, groups, player, spawn_points, size, colision_sprite=None):
+        super().__init__(pos, groups, player, spawn_points, size, name="Guardião de Astra", health=1200, speed=40, attack_range=None, colision_sprite=colision_sprite)
         self.groups_ = groups
     def attack(self):
         pass
         
     def special_attack(self):
-        random.choice([self.vinhas]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
+        random.choice([self.coluna]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):
@@ -335,7 +340,7 @@ class GuardiaoAstra(BossBase):
         pos_x = self.player.rect.centerx + offset_x
         pos_y = self.player.rect.centery + offset_y
         print(f"{self.name} lancou coluna!")
-        ColunaAscendenteShadow((pos_x, pos_y), self.groups_, self.player)
+        ColunaAscendenteShadow((pos_x, pos_y), self.groups_, self.player, self.colision_spriteAttack)
 
 
 class GuardiaoThalor(BossBase):
