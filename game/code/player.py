@@ -4,6 +4,8 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, collision_sprites):
         super().__init__(groups)
 
+        self.z = 10
+
         self.load_images()
         self.state, self.frame_index = 'down', 0
         self.image = self.frames[self.state][0]
@@ -53,6 +55,12 @@ class Player(pygame.sprite.Sprite):
 
     def is_alive(self):
         return self.__health > 0
+    
+    def reset_health(self):
+        self.__health = self.max_health
+    
+    def reset_speed(self):
+        self.speed = 500
 
 
     def load_sword_images(self):
@@ -248,16 +256,17 @@ class Player(pygame.sprite.Sprite):
         amortecimento_vertical = 20 # para evitar q a camera fique tremendo muito
         for sprite in self.collision_sprites:
             if sprite.rect.colliderect(self.hitbox_rect):
-                if direction == 'horizontal':
-                    if self.direction.x > 0:  # Movendo para a direita
-                        self.hitbox_rect.right = self.posicao_anterior.centerx + amortecimento_horizontal
-                    if self.direction.x < 0:  # Movendo para a esquerda
-                        self.hitbox_rect.left = self.posicao_anterior.centerx - amortecimento_horizontal
-                else:  # vertical
-                    if self.direction.y < 0:  # Movendo para cima
-                        self.hitbox_rect.top = self.posicao_anterior.centery - amortecimento_vertical
-                    if self.direction.y > 0:  # Movendo para baixo
-                        self.hitbox_rect.bottom = self.posicao_anterior.centery + amortecimento_vertical
+                if self.speed > 0:
+                    if direction == 'horizontal':
+                        if self.direction.x > 0:  # Movendo para a direita
+                            self.hitbox_rect.right = self.posicao_anterior.centerx + amortecimento_horizontal
+                        if self.direction.x < 0:  # Movendo para a esquerda
+                            self.hitbox_rect.left = self.posicao_anterior.centerx - amortecimento_horizontal
+                    else:  # vertical
+                        if self.direction.y < 0:  # Movendo para cima
+                            self.hitbox_rect.top = self.posicao_anterior.centery - amortecimento_vertical
+                        if self.direction.y > 0:  # Movendo para baixo
+                            self.hitbox_rect.bottom = self.posicao_anterior.centery + amortecimento_vertical
 
 
     def get_state(self):

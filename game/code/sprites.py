@@ -4,6 +4,7 @@ from settings import *
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
         super().__init__(groups)
+        self.z = 1
         self.image = surf
         self.rect = self.image.get_frect(topleft = pos)
         self.ground = True
@@ -11,6 +12,7 @@ class Sprite(pygame.sprite.Sprite):
 class CollisionSprite(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
         super().__init__(groups)
+        self.z = 15
         self.image = surf
         self.rect = self.image.get_frect(topleft = pos)
 

@@ -25,7 +25,7 @@ class Game:
         
     def setup(self):
         map = load_pygame(join('data', 'maps', 'world.tmx'))
-
+        self.guardiao_astra_spawn_points = [(1800, 900), (1800, 950)]
         for x, y, image in map.get_layer_by_name('Ground').tiles():
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
         
@@ -38,11 +38,11 @@ class Game:
         for obj in map.get_layer_by_name('Entities'):
             if obj.name == 'Player':
                 self.player = Player((obj.x,obj.y), self.all_sprites, self.collision_sprites)
-                
-        self.spawn_points = [(1800, 900), (1800, 950)]
-        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.spawn_points, (196, 256), self.collision_sprites)
-        self.collision_sprites.add(self.boss.collision_sprite)
+            if obj.name == 'GuardiaoAstraSpawnPoint':
+                self.guardiao_astra_spawn_points += [(obj.x, obj.y)]
         
+        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.guardiao_astra_spawn_points, (196, 256), self.collision_sprites)
+        self.collision_sprites.add(self.boss.collision_sprite)
         self.combate = Combate(self.player, self.boss)
         self.combate.start_combat()
 

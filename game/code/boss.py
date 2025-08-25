@@ -14,6 +14,8 @@ class BossBase(pygame.sprite.Sprite):
         self.colision_spriteAttack = colision_sprite
 
 
+        self.z = 10
+
         self.damage_sprite_especial = pygame.sprite.Group()
         # atributos do boss
         self.name = name
@@ -299,7 +301,8 @@ class GuardiaoAstra(BossBase):
         pass
         
     def special_attack(self):
-        random.choice([self.coluna]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
+        pass
+        #random.choice([self.test]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):
@@ -341,6 +344,11 @@ class GuardiaoAstra(BossBase):
         pos_y = self.player.rect.centery + offset_y
         print(f"{self.name} lancou coluna!")
         ColunaAscendenteShadow((pos_x, pos_y), self.groups_, self.player, self.colision_spriteAttack)
+
+    def test(self):
+        print(f"{self.name} lancou superultramegaataquefinalexplosaokabummmmmmm!")
+
+        ExplosaoMagnamica(self.player.rect.center, self.groups_)
 
 
 class GuardiaoThalor(BossBase):

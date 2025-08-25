@@ -64,14 +64,14 @@ class Lama(pygame.sprite.Sprite):
         if self.player.foot_rect.colliderect(self.rect):
             self.player.speed = 100
         else:
-            self.player.speed = 500
+            self.player.reset_speed()
 
 
     def update(self,dt):
         now = pygame.time.get_ticks()
         self.player_hit()
         if now - self.spawn_time >= 3000:  # 1s
-            self.player.speed = 500
+            self.player.reset_speed()
             self.kill()
 
 class Vinhas(pygame.sprite.Sprite):
@@ -87,6 +87,9 @@ class Vinhas(pygame.sprite.Sprite):
         self.break_rect = self.rect.inflate(25, 25)
 
         self.spawn_time = pygame.time.get_ticks()
+
+        self.ultima_troca = 0
+        self.delay = 300
     
     def player_stuck(self):
         if self.player.rect.colliderect(self.rect):
@@ -97,9 +100,19 @@ class Vinhas(pygame.sprite.Sprite):
         if self.player.attacking:
             if self.player.attack_hitbox.colliderect(self.break_rect):
                 self.player.pode_defender = True
-                self.player.speed = 500
+                self.player.reset_speed()
                 self.kill()
     
+    def animate(self):
+        self.image_prev = pygame.image.load('images/bosses/guardiao_de_astra/vinhas/'+ str(random.randint(0, 2))+'.png').convert_alpha()
+        self.image = pygame.transform.smoothscale(self.image_prev, (self.width, self.height))
+    
     def update(self, dt):
+        now = pygame.time.get_ticks()
         self.player_stuck()
         self.player_break()
+
+        if now - self.ultima_troca >= self.delay:
+            self.animate()
+            self.ultima_troca = now
+
