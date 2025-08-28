@@ -5,6 +5,7 @@ from pytmx.util_pygame import load_pygame
 from groups import AllSprites
 from boss import *
 from combate import Combate
+from ui import *
 
 class Game:
     def __init__(self):
@@ -45,6 +46,9 @@ class Game:
         self.collision_sprites.add(self.boss.collision_sprite)
         self.combate = Combate(self.player, self.boss)
         self.combate.start_combat()
+        
+        self.ui = UI(self.all_sprites, self.player)
+        self.ui.set_boss(self.boss)
 
     def run(self):
         while self.running:
@@ -57,12 +61,14 @@ class Game:
                     self.running = False
                 self.player.handle_mouse_input(event)
 
+                self.ui.update()
+
                 #boss
                 self.boss.collision_sprite.update()
                 self.boss.handle_event(event)
 
                 self.boss.update(dt)
-                self.boss.draw(self.screen)
+                
 
             # update 
             self.all_sprites.update(dt)
@@ -72,8 +78,6 @@ class Game:
             # draw
             self.screen.fill('black')
             self.all_sprites.draw(self.player.rect.center)
-            if self.boss.alive():
-                self.boss.draw_health_bar(self.screen)
 
             pygame.display.update()
 

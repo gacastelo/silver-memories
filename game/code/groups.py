@@ -14,7 +14,13 @@ class AllSprites(pygame.sprite.Group):
         # ordena todos os sprites pela camada (z) e depois pela posição vertical (pra dar profundidade)
         for sprite in sorted(self.sprites(), key=lambda spr: (getattr(spr, 'z', 0), spr.rect.centery)):
             if hasattr(sprite, 'draw') and callable(sprite.draw):
-                sprite.draw(self.screen, self.offset)
+                # UI e outros que ignoram offset
+                if getattr(sprite, 'ignore_camera', False):
+                    sprite.draw(self.screen, pygame.Vector2())
+                else:
+                    sprite.draw(self.screen, self.offset)
             else:
-                pos = sprite.rect.topleft + self.offset
+                pos = sprite.rect.topleft
+                if not getattr(sprite, 'ignore_camera', False):
+                    pos += self.offset
                 self.screen.blit(sprite.image, pos)

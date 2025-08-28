@@ -43,16 +43,23 @@ class Player(pygame.sprite.Sprite):
         self.in_combat = True #para Debug trocar para True
         self.__health = 3
         self.max_health = 3
-        self.damage = 10
+        self.damage = 50
+        self.tempo_invulneravel = 400
+        self.last_damage_time = 0
 
     # métodos de combate
     def dar_dano(self):
         return self.damage
     
-    def take_damage(self):
-        if self.is_alive():
-            self.__health -= 1
+    def take_damage(self, amount=1):
+        """Aplica dano se não estiver no cooldown"""
+        now = pygame.time.get_ticks()
+        if self.is_alive() and (now - self.last_damage_time >= self.tempo_invulneravel):
+            self.__health -= amount
+            self.last_damage_time = now
             print(f"Player HP: {self.__health}")
+        else:
+            print("[DEBUG] Dano ignorado por cooldown")
 
     def is_alive(self):
         return self.__health > 0
@@ -62,6 +69,9 @@ class Player(pygame.sprite.Sprite):
     
     def reset_speed(self):
         self.speed = 500
+    
+    def get_health(self):
+        return self.__health
 
 
     def load_sword_images(self):

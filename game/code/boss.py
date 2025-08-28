@@ -277,20 +277,24 @@ class BossBase(pygame.sprite.Sprite):
     def draw_health_bar(self, surface):
         """Desenha barra de vida do boss no topo da tela"""
         bar_width = 400
-        bar_height = 20
+        bar_height = 25
         bar_x = (surface.get_width() - bar_width) // 2
-        bar_y = 50
+        bar_y = WINDOW_HEIGHT - 100
 
         # Fundo da barra
         pygame.draw.rect(surface, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))
         # Vida
         fill_width = int(bar_width * (self.health / self.max_health))
         pygame.draw.rect(surface, (200, 0, 0), (bar_x, bar_y, fill_width, bar_height))
+        
+        img = pygame.transform.smoothscale(pygame.image.load(join('images', 'bosses', self.file_name, 'bossbar.png')).convert_alpha(), (450, 80))
+        surface.blit(img, (bar_x-30, bar_y-28))
 
         # Nome do boss
-        font = pygame.font.Font(None, 30)
+        font_path = 'data/fonts/bossbar.ttf'
+        font = pygame.font.Font(font_path, 30)
         text = font.render(self.name, True, (255, 255, 255))
-        surface.blit(text, (bar_x, bar_y - 25))
+        surface.blit(text, (bar_x, bar_y - 30))
 
 
 class GuardiaoAstra(BossBase):

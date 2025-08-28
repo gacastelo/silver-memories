@@ -1,6 +1,5 @@
 from settings import *
 from sprites import *
-import pygame.gfxdraw
 #==========================================#
 
            # Guardião de Thalor
