@@ -4,7 +4,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, collision_sprites):
         super().__init__(groups)
 
-        self.z = 10
+        self.z = PLAYER_LAYER
 
         self.load_images()
         self.state, self.frame_index = 'down', 0
@@ -21,7 +21,7 @@ class Player(pygame.sprite.Sprite):
 
         # ataque
         self.attacking = False
-        self.attack_duration = 400  # ms para duração do ataque
+        self.attack_duration = 200  # ms para duração do ataque
         self.attack_cooldown = 800  # ms para o cooldown do ataque
         self.attack_time = None
         self.attack_hitbox = None  # retângulo para o ataque
@@ -52,6 +52,7 @@ class Player(pygame.sprite.Sprite):
     def take_damage(self):
         if self.is_alive():
             self.__health -= 1
+            print(f"Player HP: {self.__health}")
 
     def is_alive(self):
         return self.__health > 0
@@ -281,10 +282,12 @@ class Player(pygame.sprite.Sprite):
         previous_state = getattr(self, "previous_state", self.state)
         self.get_state()
 
+        animation_speed = 2
+
         if self.attacking:
             self.image = self.frames[self.state.replace('_idle', '')][0]
             frames = self.sword_frames[self.state.replace('_idle', '')]
-            self.sword_frame_index += 15 * dt
+            self.sword_frame_index += 15 * dt * animation_speed
             if self.sword_frame_index >= len(frames):
                 self.sword_frame_index = len(frames) - 1
 

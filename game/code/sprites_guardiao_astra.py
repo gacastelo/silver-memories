@@ -19,6 +19,8 @@ class EspinhoShadow(pygame.sprite.Sprite):
         self.pos = pos
         self.groups_ = groups  # salva referência aos grupos
 
+        self.z = ENEMY_SHADOW_ATTACK_LAYER
+
     def update(self,dt):
         now = pygame.time.get_ticks()
         if now - self.spawn_time >= 800:  # 100ms
@@ -37,10 +39,18 @@ class Espinho(pygame.sprite.Sprite):
         self.prev_image = pygame.image.load('images/bosses/guardiao_de_astra/torns/torn_'+ str(random.randint(1, 4)) + '.png').convert_alpha()
         self.image = pygame.transform.smoothscale(self.prev_image, (self.width, self.height))
         self.rect = self.image.get_rect(center=self.position).inflate(-10, -10)
-
+        self.damage_possible = True
         self.spawn_time = pygame.time.get_ticks()
+
+        self.z = ENEMY_ATTACK_LAYER
+    
+    def player_hit(self):
+        if self.player.damage_hitbox.colliderect(self.rect) and self.damage_possible:
+            self.player.take_damage()
+            self.damage_possible = False
     
     def update(self,dt):
+        self.player_hit()
         now = pygame.time.get_ticks()
         if now - self.spawn_time >= 1000:  # 1s
             self.kill()
@@ -59,6 +69,8 @@ class Lama(pygame.sprite.Sprite):
         self.rect = self.sigma_rect.inflate(-25, -25)
 
         self.spawn_time = pygame.time.get_ticks()
+
+        self.z = ENEMY_LAYER - 1
     
     def player_hit(self):
         if self.player.foot_rect.colliderect(self.rect):
@@ -90,6 +102,8 @@ class Vinhas(pygame.sprite.Sprite):
 
         self.ultima_troca = 0
         self.delay = 300
+
+        self.z = EFFECT_LAYER
     
     def player_stuck(self):
         if self.player.rect.colliderect(self.rect):

@@ -14,7 +14,7 @@ class BossBase(pygame.sprite.Sprite):
         self.colision_spriteAttack = colision_sprite
 
 
-        self.z = 10
+        self.z = ENEMY_LAYER
 
         self.damage_sprite_especial = pygame.sprite.Group()
         # atributos do boss
@@ -68,7 +68,7 @@ class BossBase(pygame.sprite.Sprite):
         self.last_normal_attack = pygame.time.get_ticks()
 
         self.special_attacking = False
-        self.special_attack_cooldown = 3000  # ms
+        self.special_attack_cooldown = 10000  # ms
         self.last_special_attack = pygame.time.get_ticks()
 
         # Controle de teleporte
@@ -301,8 +301,8 @@ class GuardiaoAstra(BossBase):
         pass
         
     def special_attack(self):
-        pass
-        #random.choice([self.test]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
+        #pass
+        random.choice([self.lama, self.espinhos, self.vinhas]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):
@@ -336,19 +336,22 @@ class GuardiaoAstra(BossBase):
     
     # Teste Thalor
     def coluna(self):
-        raio = 200
-        offset_x = random.randint(-raio, raio)
-        offset_y = random.randint(-raio, raio)
-        # Posição final do espinho
-        pos_x = self.player.rect.centerx + offset_x
-        pos_y = self.player.rect.centery + offset_y
-        print(f"{self.name} lancou coluna!")
-        ColunaAscendenteShadow((pos_x, pos_y), self.groups_, self.player, self.colision_spriteAttack)
+        qnt_colunas = 5
+        for _ in range(qnt_colunas):
+            # Gera offsets aleatórios dentro do raio
+            raio = 500
+            offset_x = random.randint(-raio, raio)
+            offset_y = random.randint(-raio, raio)
+            # Posição final do espinho
+            pos_x = self.player.rect.centerx + offset_x
+            pos_y = self.player.rect.centery + offset_y
+            print(f"{self.name} lancou coluna!")
+            ColunaAscendenteShadow((pos_x, pos_y), self.groups_, self.player, self.colision_spriteAttack)
 
     def test(self):
         print(f"{self.name} lancou superultramegaataquefinalexplosaokabummmmmmm!")
-
-        ExplosaoMagnamica(self.player.rect.center, self.groups_)
+        pos = (1600, 800)
+        CupulaDefensiva(pos, self.groups_, self.player)
 
 
 class GuardiaoThalor(BossBase):

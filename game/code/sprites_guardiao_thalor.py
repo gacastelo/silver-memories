@@ -19,6 +19,7 @@ class ColunaAscendenteShadow(pygame.sprite.Sprite):
         self.spawn_time = pygame.time.get_ticks()
         self.player = player
         self.pos = pos
+        self.z = ENEMY_SHADOW_ATTACK_LAYER
 
         self.colision_sprite = colision_sprite
 
@@ -50,6 +51,7 @@ class ColunaAscendente(pygame.sprite.Sprite):
         self.groups_ = groups
         self.stop_rect = self.rect.inflate(-30,-30)
         self.colision_sprite = colision_sprite
+        self.z = ENEMY_ATTACK_LAYER
         
     
     def update(self,dt):
@@ -80,34 +82,48 @@ class ColunaAscendente(pygame.sprite.Sprite):
             self.player.speed = 0
 
 class ExplosaoMagnamica(pygame.sprite.Sprite):
-    def __init__(self, pos, groups):
+    def __init__(self, pos, groups, player, cupula):
         super().__init__(groups)
         self.pos = pos
-        self.image_prev = pygame.image.load('images/bosses/gardiao_de_thalor/bumm.jpg').convert_alpha()
+        self.image_prev = pygame.image.load('images/bosses/gardiao_de_thalor/explosao/bumm.jpg').convert_alpha()
         self.image = pygame.transform.smoothscale(self.image_prev, (2000, 2000))
         self.rect = self.image.get_rect(center = pos)
         self.duracao = 1000
         self.spawn_time = pygame.time.get_ticks()
+        self.player_atingido = False
+        self.z = EFFECT_LAYER
 
-        self.z = 20
+        self.player = player
+        self.cupula = cupula
+
+    def player_hit(self):
+        if self.rect.colliderect(self.player.hitbox_rect) and self.cupula.player_in_defense == False and not self.player_atingido:
+            print("[DEBUG] Player atingido pela explosao!")
+            self.player.take_damage()
+            self.player_atingido = True
 
     def update(self,dt):
+        self.player_hit()
         now = pygame.time.get_ticks()
         if now - self.spawn_time >= self.duracao:
             self.kill()
-    
+
 
 
 class CupulaDefensiva(pygame.sprite.Sprite):
     def __init__(self, pos, groups, player):
         super().__init__(groups)
         self.pos = pos
-        self.image_prev = pygame.image.load('images/bosses/gardiao_de_thalor/cupula/defensiva.png').convert_alpha()
+        self.image_prev = pygame.image.load('images/bosses/gardiao_de_thalor/explosao/cupula_defensiva.png').convert_alpha()
         self.image = pygame.transform.smoothscale(self.image_prev, (200, 200))
         self.rect = self.image.get_rect(center = pos)
         self.player_in_defense = False
         self.player = player
         self.spawn_time = pygame.time.get_ticks()
+        self.z = EFFECT_LAYER + 1
+        self.tempo_para_o_ataque = 1000
+        self.groups_ = groups
+        self.nao_atacou = True
     
     def player_hit(self):
         if self.rect.colliderect(self.player.hitbox_rect):
@@ -117,6 +133,10 @@ class CupulaDefensiva(pygame.sprite.Sprite):
     
 
     def update(self,dt):
+        self.player_hit()
         now = pygame.time.get_ticks()
         if now - self.spawn_time >= 3000:
             self.kill()
+        if (now - self.spawn_time >= self.tempo_para_o_ataque) and self.nao_atacou:
+            ExplosaoMagnamica(self.player.rect.center, self.groups_, self.player, self)
+            self.nao_atacou = False
