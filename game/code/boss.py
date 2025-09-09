@@ -311,7 +311,7 @@ class GuardiaoAstra(BossBase):
         
     def special_attack(self):
         #pass
-        random.choice([self.test]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
+        random.choice([self.espinhos, self.vinhas, self.lama]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):
@@ -335,13 +335,6 @@ class GuardiaoAstra(BossBase):
     def vinhas(self):
         print(f"{self.name} lancou vinhas!")
         Vinhas(self.groups_, self.player)
-        
-    
-    def take_damage(self, amount, is_weak):
-        if is_weak:
-            super().take_damage(amount, is_weak)
-        else:
-            print("Golpe ignorado! Só leva dano no ponto fraco.")
     
     # Teste Thalor
     def coluna(self):
