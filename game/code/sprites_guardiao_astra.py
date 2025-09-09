@@ -23,6 +23,9 @@ class EspinhoShadow(pygame.sprite.Sprite):
 
     def update(self,dt):
         now = pygame.time.get_ticks()
+        if now - self.spawn_time >= 750:  # 790ms
+            channel = pygame.mixer.Channel(2)
+            channel.play(pygame.mixer.Sound("images/bosses/guardiao_de_astra/sounds/torn.mp3"))
         if now - self.spawn_time >= 800:  # 100ms
             Espinho(self.pos, self.groups_, self.player)
             self.kill()
@@ -71,12 +74,18 @@ class Lama(pygame.sprite.Sprite):
         self.spawn_time = pygame.time.get_ticks()
 
         self.z = ENEMY_LAYER - 1
+        channel = pygame.mixer.Channel(2)
+        som = pygame.mixer.Sound("images/bosses/guardiao_de_astra/sounds/lama.mp3")
+        som.set_volume(0.25)
+        channel.play(som)
     
     def player_hit(self):
         if self.player.foot_rect.colliderect(self.rect):
+            self.player.pisando_lama = True
             self.player.speed = 100
         else:
             self.player.reset_speed()
+            self.player.pisando_lama = False
 
 
     def update(self,dt):
@@ -104,17 +113,22 @@ class Vinhas(pygame.sprite.Sprite):
         self.delay = 300
 
         self.z = EFFECT_LAYER
+        self.channel = pygame.mixer.Channel(2)
+        self.channel.play(pygame.mixer.Sound("images/bosses/guardiao_de_astra/sounds/vinha.mp3"), -1)
+        
     
     def player_stuck(self):
         if self.player.rect.colliderect(self.rect):
             self.player.speed = 0
             self.player.pode_defender = False
+            
 
     def player_break(self):
         if self.player.attacking:
             if self.player.attack_hitbox.colliderect(self.break_rect):
                 self.player.pode_defender = True
                 self.player.reset_speed()
+                self.channel.stop()
                 self.kill()
     
     def animate(self):

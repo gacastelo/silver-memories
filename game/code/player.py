@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.frames[self.state][0]
         self.rect = self.image.get_rect(center=pos)
         self.hitbox_rect = self.rect.inflate(-90, -75)
-        self.damage_hitbox = self.rect.inflate(-40,-40)  # Retângulo para o hitbox de dano
+        self.damage_hitbox = self.rect.inflate(-60,-60)  # Retângulo para o hitbox de dano
         self.foot_rect = self.rect.inflate(-50, -100)
 
         # movement 
@@ -47,6 +47,14 @@ class Player(pygame.sprite.Sprite):
         self.tempo_invulneravel = 400
         self.last_damage_time = 0
 
+        
+        
+        self.pisando_lama = False
+        self.som_passos = pygame.mixer.Sound("images/player/sounds/passos.mp3")
+        self.som_lama = pygame.mixer.Sound("images/player/sounds/pisando_lama.wav")
+        self.som_passos.set_volume(0.5)
+        self.som_lama.set_volume(0.5)
+
     # métodos de combate
     def dar_dano(self):
         return self.damage
@@ -62,7 +70,7 @@ class Player(pygame.sprite.Sprite):
             print("[DEBUG] Dano ignorado por cooldown")
 
     def is_alive(self):
-        return self.__health > 0
+        return self.get_health() > 0
     
     def reset_health(self):
         self.__health = self.max_health
@@ -153,6 +161,10 @@ class Player(pygame.sprite.Sprite):
             self.direction = pygame.Vector2()
             self.create_attack_hitbox()
             self.sword_frame_index = 0
+            channel = pygame.mixer.Channel(1)
+            som = pygame.mixer.Sound("images/sword/sounds/slash"+str(random.randint(1, 2))+".mp3")
+            som.set_volume(0.5)
+            channel.play(som)
         
         # Ativar escudo com botão direito
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and self.pode_defender:
@@ -229,23 +241,32 @@ class Player(pygame.sprite.Sprite):
 
     # A principal alteração está nesta função para otimizar o movimento e colisão
     def move(self, dt):
+        channel = pygame.mixer.Channel(3)
         self.posicao_anterior = self.hitbox_rect.copy()
+
         if self.direction.length() > 0:
-            # Movimento e colisão horizontal
+            som_correto = self.som_lama if self.pisando_lama else self.som_passos
+            som_atual = channel.get_sound()
+
+            if som_atual != som_correto:
+                channel.stop()
+                channel.play(som_correto, loops=-1)
+
+            # movimento e colisão
             self.hitbox_rect.x += self.direction.x * self.speed * dt
             self.collision('horizontal')
-            
-            # Movimento e colisão vertical
             self.hitbox_rect.y += self.direction.y * self.speed * dt
             self.collision('vertical')
-        
-        # Finalmente, centraliza o retangulo visual no hitbox
+
+        else:
+            channel.stop()
+
         self.rect.center = self.hitbox_rect.center
-
-        # Atualiza a posição do hitbox de dano para coincidir com o hitbox do jogador
         self.damage_hitbox.center = self.hitbox_rect.center
-
         self.foot_rect.center = self.hitbox_rect.center + pygame.math.Vector2(0, 50)
+
+
+
 
     #def collision(self, direction): #COLISÃO ANTIGA SAVED 
     #   for sprite in self.collision_sprites:

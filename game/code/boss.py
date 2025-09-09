@@ -87,6 +87,9 @@ class BossBase(pygame.sprite.Sprite):
     def is_alive(self):
         return self.health > 0
     
+    def reset(self):
+        self.health = self.max_health
+    
     def take_damage(self, amount, is_weak):
         if is_weak:
             amount *= 2  # dano dobrado no ponto fraco
@@ -133,32 +136,33 @@ class BossBase(pygame.sprite.Sprite):
         print(f"[DEBUG] Verificando colisão com o jogador: {self.collision_rect.colliderect(self.player.hitbox_rect)}")
 
     def teleport(self):
-        """Teleporta para um ponto aleatório do mapa"""
-        pygame.time.set_timer(self.TELEPORT_SPECIAL_EVENT, 200, loops=1) #loops igual a quantidade de ataques (com um cooldown de 200ms entre cada) após um teleport
-        self.visible = False  # fica invisível por um instante
-        self.get_state()
-        pygame.time.set_timer(pygame.USEREVENT + 1, self.fade_time, loops=1)  # evento para reaparecer
-        print(f"[DEBUG] Teleportando... posição antiga: {self.rect.center}")
-        new_pos = random.choice(self.spawn_points)
-        self.rect.center = new_pos
-        self.collision_rect.center = new_pos  # atualiza a colisão
-        if self.attack_range != None:
-            if self.true_state in ("right", "left"):
-                self.attack_hitbox.size = self.atk_horizontal_size
-            elif self.true_state in ("up", "down"):
-                self.attack_hitbox.size = self.atk_vertical_size
+        if self.is_alive():
+            """Teleporta para um ponto aleatório do mapa"""
+            pygame.time.set_timer(self.TELEPORT_SPECIAL_EVENT, 200, loops=1) #loops igual a quantidade de ataques (com um cooldown de 200ms entre cada) após um teleport
+            self.visible = False  # fica invisível por um instante
+            self.get_state()
+            pygame.time.set_timer(pygame.USEREVENT + 1, self.fade_time, loops=1)  # evento para reaparecer
+            print(f"[DEBUG] Teleportando... posição antiga: {self.rect.center}")
+            new_pos = random.choice(self.spawn_points)
+            self.rect.center = new_pos
+            self.collision_rect.center = new_pos  # atualiza a colisão
+            if self.attack_range != None:
+                if self.true_state in ("right", "left"):
+                    self.attack_hitbox.size = self.atk_horizontal_size
+                elif self.true_state in ("up", "down"):
+                    self.attack_hitbox.size = self.atk_vertical_size
 
-            # Atualiza a posição do hitbox de dano para coincidir com a nova posição
-            if self.true_state == "right":
-                self.attack_hitbox.center = (new_pos[0] + self.attack_range, new_pos[1])
-            elif self.true_state == "left":
-                self.attack_hitbox.center = (new_pos[0] - self.attack_range, new_pos[1])
-            elif self.true_state == "up":
-                self.attack_hitbox.center = (new_pos[0], new_pos[1] - self.attack_range)
-            elif self.true_state == "down":
-                self.attack_hitbox.center = (new_pos[0], new_pos[1] + self.attack_range)
+                # Atualiza a posição do hitbox de dano para coincidir com a nova posição
+                if self.true_state == "right":
+                    self.attack_hitbox.center = (new_pos[0] + self.attack_range, new_pos[1])
+                elif self.true_state == "left":
+                    self.attack_hitbox.center = (new_pos[0] - self.attack_range, new_pos[1])
+                elif self.true_state == "up":
+                    self.attack_hitbox.center = (new_pos[0], new_pos[1] - self.attack_range)
+                elif self.true_state == "down":
+                    self.attack_hitbox.center = (new_pos[0], new_pos[1] + self.attack_range)
 
-        print(f"[DEBUG] Nova posição: {self.rect.center}")
+            print(f"[DEBUG] Nova posição: {self.rect.center}")
 
     def load_images(self):
         # Adiciona os estados com idle igual ao player
@@ -198,6 +202,7 @@ class BossBase(pygame.sprite.Sprite):
         self.weakspot.kill()
         self.collision_sprite.kill()
         self.kill()
+        
 
     def attack(self):
         """Ataque padrão (pode ser sobrescrito)"""
@@ -239,7 +244,7 @@ class BossBase(pygame.sprite.Sprite):
     def handle_event(self, event):
         if event.type == pygame.USEREVENT + 1:
             self.visible = True
-        if event.type == self.TELEPORT_SPECIAL_EVENT:
+        if event.type == self.TELEPORT_SPECIAL_EVENT and self.is_alive():
             self.special_attack()
 
     def update(self, dt):
@@ -306,7 +311,7 @@ class GuardiaoAstra(BossBase):
         
     def special_attack(self):
         #pass
-        random.choice([self.lama, self.espinhos, self.vinhas]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
+        random.choice([self.test]).__call__() #, , , self.lama  self.espinhos self.vinhas, self.lama, espinhos, self.lama, self.vinhas
 
 
     def espinhos(self, quantidade=5, raio=250):

@@ -11,6 +11,8 @@ class Game:
     def __init__(self):
         # setup
         pygame.init()
+        pygame.mixer.init()
+        pygame.mixer.set_num_channels(4)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption('Survivor')
         self.clock = pygame.time.Clock()
@@ -30,8 +32,8 @@ class Game:
         for x, y, image in map.get_layer_by_name('Ground').tiles():
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
         
-        for obj in map.get_layer_by_name('Objects'):
-            CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
+        #for obj in map.get_layer_by_name('Objects'):
+           # CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
         
         for obj in map.get_layer_by_name('Collisions'):
             CollisionSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
@@ -62,12 +64,17 @@ class Game:
                 self.player.handle_mouse_input(event)
 
                 self.ui.update()
+                
+                if self.boss.is_alive():
+                    #boss
+                    self.boss.collision_sprite.update()
+                    self.boss.handle_event(event)
 
-                #boss
-                self.boss.collision_sprite.update()
-                self.boss.handle_event(event)
-
-                self.boss.update(dt)
+                    self.boss.update(dt)
+                
+                if not self.boss.is_alive():
+                    pass
+                    # Mostrar tela de vitória ou outro boss
                 
 
             # update 
