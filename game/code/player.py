@@ -167,11 +167,14 @@ class Player(pygame.sprite.Sprite):
             channel.play(som)
         
         # Ativar escudo com botão direito
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and self.pode_defender:
-            self.shield_active = True
-            self.shield_time = pygame.time.get_ticks()
-            self.direction = pygame.Vector2()
-            self.create_shield_hitbox()
+        #elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and self.pode_defender:
+        #    self.shield_active = True
+        #    self.shield_time = pygame.time.get_ticks()
+        #    self.direction = pygame.Vector2()
+        #    self.create_shield_hitbox()
+        
+        #if event.type == pygame.MOUSEBUTTONDOWN and event.button == 2:
+        #    self.take_damage()
 
     def pode_atacar(self):
         return not self.attacking and not self.shield_active and self.can_attack

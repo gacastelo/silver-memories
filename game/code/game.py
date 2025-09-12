@@ -17,6 +17,8 @@ class Game:
         pygame.display.set_caption('Survivor')
         self.clock = pygame.time.Clock()
         self.running = True
+        self.paused = False  # estado de pausa
+        self.controles = False
 
         # groups 
         self.all_sprites = AllSprites()
@@ -24,8 +26,6 @@ class Game:
 
         self.setup()
 
-        # sprites
-        
     def setup(self):
         map = load_pygame(join('data', 'maps', 'world.tmx'))
         self.guardiao_astra_spawn_points = [(1800, 900), (1800, 950)]
@@ -52,43 +52,76 @@ class Game:
         self.ui = UI(self.all_sprites, self.player)
         self.ui.set_boss(self.boss)
 
+    def reset(self):
+        self.all_sprites.empty()
+        self.collision_sprites.empty()
+        self.setup()
+        self.paused = False
+
     def run(self):
         while self.running:
-            # dt 
             dt = self.clock.tick(60) / 1000
 
             # event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                self.player.handle_mouse_input(event)
 
-                self.ui.update()
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.running = False
                 
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    self.paused = not self.paused
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_F4:
+                        self.controles = not self.controles
+                        self.paused = not self.paused
+
+                if self.paused:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                        self.reset()
+                    continue
+
+                self.player.handle_mouse_input(event)
+                self.ui.update()
                 if self.boss.is_alive():
-                    #boss
                     self.boss.collision_sprite.update()
                     self.boss.handle_event(event)
-
                     self.boss.update(dt)
-                
-                if not self.boss.is_alive():
-                    pass
-                    # Mostrar tela de vitória ou outro boss
-                
 
             # update 
-            self.all_sprites.update(dt)
-            if self.player.in_combat:
-                self.combate.update(dt)
+            if not self.paused:
+                self.all_sprites.update(dt)
+                if self.player.in_combat:
+                    self.combate.update(dt)
 
             # draw
             self.screen.fill('black')
             self.all_sprites.draw(self.player.rect.center)
 
+            if not self.boss.is_alive():
+                self.screen.blit(pygame.image.load(join('images', 'venceu.png')).convert_alpha(), (0, 0))
+                if not self.paused:  
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load(join("images", "ganhou.mp3"))
+                    pygame.mixer.music.play()
+                    self.paused = True
+
+            if not self.player.is_alive():
+                self.screen.blit(pygame.image.load(join('images', 'voce_morreu.png')).convert_alpha(), (0, 0))
+                if not self.paused:  
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load(join("images", "falhou.mp3"))
+                    pygame.mixer.music.play()
+                    self.paused = True
+            
+            if self.controles:
+                self.screen.blit(pygame.image.load(join('images', 'controles.png')).convert_alpha(), (0, 0))
+
             pygame.display.update()
 
         pygame.quit()
+
 if __name__ == '__main__':
     game = Game()
     game.run()
