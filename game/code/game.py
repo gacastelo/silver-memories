@@ -100,7 +100,7 @@ class Game:
             self.all_sprites.draw(self.player.rect.center)
 
             if not self.boss.is_alive():
-                self.screen.blit(pygame.image.load(join('images', 'venceu.png')).convert_alpha(), (0, 0))
+                self.screen.blit(pygame.transform.smoothscale(pygame.image.load(join('images', 'venceu.png')).convert_alpha(), (WINDOW_WIDTH, WINDOW_HEIGHT)), (0, 0))
                 if not self.paused:  
                     pygame.mixer.music.stop()
                     pygame.mixer.music.load(join("images", "ganhou.mp3"))
@@ -108,7 +108,7 @@ class Game:
                     self.paused = True
 
             if not self.player.is_alive():
-                self.screen.blit(pygame.image.load(join('images', 'voce_morreu.png')).convert_alpha(), (0, 0))
+                self.screen.blit(pygame.transform.smoothscale(pygame.image.load(join('images', 'voce_morreu.png')).convert_alpha(), (WINDOW_WIDTH, WINDOW_HEIGHT)), (0, 0))
                 if not self.paused:  
                     pygame.mixer.music.stop()
                     pygame.mixer.music.load(join("images", "falhou.mp3"))
@@ -116,7 +116,7 @@ class Game:
                     self.paused = True
             
             if self.controles:
-                self.screen.blit(pygame.image.load(join('images', 'controles.png')).convert_alpha(), (0, 0))
+                self.screen.blit(pygame.transform.smoothscale(pygame.image.load(join('images', 'controles.png')).convert_alpha(), (WINDOW_WIDTH, WINDOW_HEIGHT)), (0, 0))
 
             pygame.display.update()
 
