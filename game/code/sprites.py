@@ -40,7 +40,7 @@ class Weakspot(pygame.sprite.Sprite):
         self.height = 20
         self.image = pygame.Surface((self.width, self.height))  # tamanho inicial
         self.image.fill((255, 0, 0))
-        self.image.set_alpha(255)
+        self.image.set_alpha(0)
         self.rect = self.image.get_rect()
         self.offset = 35
         self.z = ENEMY_LAYER + 1 #for debug
@@ -54,7 +54,7 @@ class Weakspot(pygame.sprite.Sprite):
             self.image = pygame.Surface((self.height, self.width))
 
         self.image.fill((255, 0, 0))
-        self.image.set_alpha(255)
+        self.image.set_alpha(0)
         self.rect = self.image.get_rect()
         #print(f"[DEBUG] Atualizando posição do ponto fraco: {direction}")
 

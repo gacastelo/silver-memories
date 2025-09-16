@@ -43,7 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.in_combat = True #para Debug trocar para True
         self.__health = 4
         self.max_health = 4
-        self.damage = 50
+        self.damage = 5000
         self.tempo_invulneravel = 400
         self.last_damage_time = 0
 
@@ -375,7 +375,7 @@ class Player(pygame.sprite.Sprite):
         
 
         # Adiciona a função de debug para desenhar o rect e hitbox do jogador e das colisões
-        self.debug_draw(surface, offset)
+        #self.debug_draw(surface, offset)
 
 
     def debug_draw(self, surface, offset):
@@ -418,4 +418,3 @@ class Player(pygame.sprite.Sprite):
         self.move(dt)
         self.animate(dt)
         self.cooldowns()
-        print("[DEBUG] Player x,y: ", self.rect.center)

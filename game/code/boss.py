@@ -138,7 +138,7 @@ class BossBase(pygame.sprite.Sprite):
     def teleport(self):
         if self.is_alive():
             """Teleporta para um ponto aleatório do mapa"""
-            pygame.time.set_timer(self.TELEPORT_SPECIAL_EVENT, 200, loops=1) #loops igual a quantidade de ataques (com um cooldown de 200ms entre cada) após um teleport
+            pygame.time.set_timer(self.TELEPORT_SPECIAL_EVENT, 1000, loops=3) #loops igual a quantidade de ataques (com um cooldown de 200ms entre cada) após um teleport
             self.visible = False  # fica invisível por um instante
             self.get_state()
             pygame.time.set_timer(pygame.USEREVENT + 1, self.fade_time, loops=1)  # evento para reaparecer
