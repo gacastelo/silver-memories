@@ -73,7 +73,7 @@ class BossBase(pygame.sprite.Sprite):
 
         # Controle de teleporte
         self.TELEPORT_SPECIAL_EVENT = pygame.USEREVENT + 2
-        self.teleport_cooldown = 2000  # ms
+        self.teleport_cooldown = 4000  # ms
         self.last_teleport = pygame.time.get_ticks()
 
         # Efeito de desaparecimento

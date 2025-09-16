@@ -28,7 +28,7 @@ class Game:
 
     def setup(self):
         map = load_pygame(join('data', 'maps', 'world.tmx'))
-        self.guardiao_astra_spawn_points = [(1800, 900), (1800, 950)]
+        self.guardiao_astra_spawn_points = [(1800, 950), (1188, 2085), (2261, 1968), (974, 1309)]
         for x, y, image in map.get_layer_by_name('Ground').tiles():
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
         

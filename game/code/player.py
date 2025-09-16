@@ -418,3 +418,4 @@ class Player(pygame.sprite.Sprite):
         self.move(dt)
         self.animate(dt)
         self.cooldowns()
+        print("[DEBUG] Player x,y: ", self.rect.center)
