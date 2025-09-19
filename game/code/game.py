@@ -83,11 +83,12 @@ class Game:
                     continue
 
                 self.player.handle_mouse_input(event)
-                self.ui.update()
-                if self.boss.is_alive():
-                    self.boss.collision_sprite.update()
-                    self.boss.handle_event(event)
-                    self.boss.update(dt)
+                if not self.paused:
+                    self.ui.update()
+                    if self.boss.is_alive():
+                        self.boss.collision_sprite.update()
+                        self.boss.handle_event(event)
+                        self.boss.update(dt)
 
             # update 
             if not self.paused:

@@ -43,7 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.in_combat = True #para Debug trocar para True
         self.__health = 4
         self.max_health = 4
-        self.damage = 5000
+        self.damage = 50
         self.tempo_invulneravel = 400
         self.last_damage_time = 0
 

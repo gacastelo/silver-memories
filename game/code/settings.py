@@ -4,7 +4,7 @@ from os import walk
 import random
 import unicodedata
 
-WINDOW_WIDTH, WINDOW_HEIGHT = 1200, 800 
+WINDOW_WIDTH, WINDOW_HEIGHT = 1900, 1000 
 TILE_SIZE = 64
 
 def remove_accents(input_str):

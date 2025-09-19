@@ -233,7 +233,7 @@ class BossBase(pygame.sprite.Sprite):
                     self.image = self.frames[self.state.replace('_idle', '')][0]
 
 
-        self.debug_draw(surface, offset)
+        #self.debug_draw(surface, offset)
 
     def debug_draw(self, surface, offset):
         pygame.draw.rect(surface, (255, 255, 0), self.rect.move(offset), 2)
