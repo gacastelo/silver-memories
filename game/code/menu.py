@@ -12,20 +12,17 @@ def main():
     start_button = Button("Iniciar Jogo", (WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2 - 50))
     quit_button = Button("Sair", (WINDOW_WIDTH // 2 - 100, WINDOW_HEIGHT // 2 + 30))
 
-    title_font = pygame.font.Font(None, 80)
     running = True
 
+    background = pygame.transform.scale(pygame.image.load(join('images', 'background.jpg')).convert_alpha(), (WINDOW_WIDTH, WINDOW_HEIGHT))
+
     while running:
-        screen.fill((30, 30, 30))
+        screen.blit(background, (0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Título
-        title_surface = title_font.render("Silver Memories", True, (255, 255, 255))
-        title_rect = title_surface.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 3 - 50))
-        screen.blit(title_surface, title_rect)
 
         # Botões
         if start_button.draw(screen):

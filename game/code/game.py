@@ -12,13 +12,15 @@ class Game:
         # setup
         pygame.init()
         pygame.mixer.init()
-        pygame.mixer.set_num_channels(4)
+        pygame.mixer.set_num_channels(5)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption('Survivor')
         self.clock = pygame.time.Clock()
         self.running = True
         self.paused = False  # estado de pausa
         self.controles = False
+        self.mChannel = pygame.mixer.Channel(4)
+        self.mChannel.set_volume(0.5)
 
         # groups 
         self.all_sprites = AllSprites()
@@ -27,7 +29,7 @@ class Game:
         self.setup()
 
     def setup(self):
-        map = load_pygame(join('data', 'maps', 'world.tmx'))
+        map = load_pygame(join('data', 'maps', 'world.tmx'))    
         self.guardiao_astra_spawn_points = [(1800, 950), (1188, 2085), (2261, 1968), (974, 1309)]
         for x, y, image in map.get_layer_by_name('Ground').tiles():
             Sprite((x * TILE_SIZE,y * TILE_SIZE), image, self.all_sprites)
@@ -44,7 +46,7 @@ class Game:
             if obj.name == 'GuardiaoAstraSpawnPoint':
                 self.guardiao_astra_spawn_points += [(obj.x, obj.y)]
         
-        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.guardiao_astra_spawn_points, (196, 256), self.collision_sprites)
+        self.boss = GuardiaoAstra((1800, 800), self.all_sprites, self.player, self.guardiao_astra_spawn_points, (294, 384), self.collision_sprites)
         self.collision_sprites.add(self.boss.collision_sprite)
         self.combate = Combate(self.player, self.boss)
         self.combate.start_combat()
@@ -57,6 +59,10 @@ class Game:
         self.collision_sprites.empty()
         self.setup()
         self.paused = False
+
+    def playMusic(self):
+        if not self.mChannel.get_busy():
+            self.mChannel.play(pygame.mixer.Sound(join('images', 'boss_music.mp3')), -1)
 
     def run(self):
         while self.running:
@@ -86,6 +92,7 @@ class Game:
                 if not self.paused:
                     self.ui.update()
                     if self.boss.is_alive():
+                        self.playMusic()
                         self.boss.collision_sprite.update()
                         self.boss.handle_event(event)
                         self.boss.update(dt)
@@ -101,6 +108,7 @@ class Game:
             self.all_sprites.draw(self.player.rect.center)
 
             if not self.boss.is_alive():
+                self.mChannel.stop()
                 self.screen.blit(pygame.transform.smoothscale(pygame.image.load(join('images', 'venceu.png')).convert_alpha(), (WINDOW_WIDTH, WINDOW_HEIGHT)), (0, 0))
                 if not self.paused:  
                     pygame.mixer.music.stop()

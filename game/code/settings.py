@@ -16,8 +16,8 @@ class Button:
     def __init__(self, text, pos, size=(200, 60)):
         self.text = text
         self.rect = pygame.Rect(pos, size)
-        self.color_idle = (70, 70, 70)
-        self.color_hover = (100, 100, 100)
+        self.color_idle = (32, 61, 57)
+        self.color_hover = (55, 134, 139)
         self.color_active = (150, 150, 150)
         self.font = pygame.font.Font(None, 40)
         self.clicked = False

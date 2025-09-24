@@ -218,7 +218,7 @@ class BossBase(pygame.sprite.Sprite):
         moving = self.state not in ['left_idle', 'right_idle', 'up_idle', 'down_idle']
         if self.visible:
             pos = (self.rect.left + offset[0], self.rect.top + offset[1])
-            surface.blit(self.image, pos)
+            surface.blit(pygame.transform.smoothscale(self.image, (self.width, self.height)), pos)
             if moving:
                     self.frame_index += (self.speed/50) * dt
                     current_frames = self.frames[self.state]
@@ -233,7 +233,7 @@ class BossBase(pygame.sprite.Sprite):
                     self.image = self.frames[self.state.replace('_idle', '')][0]
 
 
-        #self.debug_draw(surface, offset)
+        self.debug_draw(surface, offset)
 
     def debug_draw(self, surface, offset):
         pygame.draw.rect(surface, (255, 255, 0), self.rect.move(offset), 2)

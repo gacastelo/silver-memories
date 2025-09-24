@@ -54,7 +54,7 @@ class UI(pygame.sprite.Sprite):
         pygame.draw.rect(surface, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))
         # Vida
         fill_width = int(bar_width * (self.boss.health / self.boss.max_health))
-        pygame.draw.rect(surface, (200, 0, 0), (bar_x, bar_y, fill_width, bar_height))
+        pygame.draw.rect(surface, (125, 0, 0), (bar_x, bar_y, fill_width, bar_height))
 
         # Frame decorativo
         img = pygame.image.load(join('images', 'bosses', self.boss.file_name, 'bossbar.png')).convert_alpha()
