@@ -45,10 +45,10 @@ class UI(pygame.sprite.Sprite):
         if not self.boss:
             return
 
-        bar_width = 400
-        bar_height = 25
+        bar_width = WINDOW_WIDTH * 0.4
+        bar_height = WINDOW_HEIGHT * 0.05
         bar_x = (surface.get_width() - bar_width) // 2
-        bar_y = WINDOW_HEIGHT - 100
+        bar_y = (WINDOW_HEIGHT * 0.95) - bar_height
 
         # Fundo da barra
         pygame.draw.rect(surface, (50, 50, 50), (bar_x, bar_y, bar_width, bar_height))
@@ -58,11 +58,11 @@ class UI(pygame.sprite.Sprite):
 
         # Frame decorativo
         img = pygame.image.load(join('images', 'bosses', self.boss.file_name, 'bossbar.png')).convert_alpha()
-        img = pygame.transform.smoothscale(img, (450, 80))
-        surface.blit(img, (bar_x - 30, bar_y - 28))
+        img = pygame.transform.smoothscale(img, (WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.125))
+        surface.blit(img, (bar_x - WINDOW_WIDTH * 0.025, bar_y - WINDOW_HEIGHT* 0.03))
 
         # Nome do boss
         font_path = 'data/fonts/bossbar.ttf'
-        font = pygame.font.Font(font_path, 30)
+        font = pygame.font.Font(font_path, 40)
         text = font.render(self.boss.name, True, (255, 255, 255))
-        surface.blit(text, (bar_x, bar_y - 30))
+        surface.blit(text, (bar_x, bar_y - WINDOW_HEIGHT * 0.025))

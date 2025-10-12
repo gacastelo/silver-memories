@@ -11,8 +11,8 @@ class Game:
     def __init__(self):
         # setup
         pygame.init()
-        pygame.mixer.init()
-        pygame.mixer.set_num_channels(5)
+        pygame.mixer.init() 
+        pygame.mixer.set_num_channels(10)
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption('Survivor')
         self.clock = pygame.time.Clock()

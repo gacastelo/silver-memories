@@ -1,4 +1,4 @@
-pygame==2.5.2
+pygame-ce==2.5.2
 pytmx==3.32
 pyscroll==2.29
 pygame_gui==0.6.9

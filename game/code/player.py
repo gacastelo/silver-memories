@@ -13,6 +13,7 @@ class Player(pygame.sprite.Sprite):
         self.hitbox_rect = self.rect.inflate(-90, -75)
         self.damage_hitbox = self.rect.inflate(-60,-60)  # Retângulo para o hitbox de dano
         self.foot_rect = self.rect.inflate(-50, -100)
+        self.channel_dammage = pygame.mixer.Channel(8)
 
         # movement 
         self.direction = pygame.Vector2()   
@@ -66,6 +67,7 @@ class Player(pygame.sprite.Sprite):
             self.__health -= amount
             self.last_damage_time = now
             print(f"Player HP: {self.__health}")
+            self.channel_dammage.play(pygame.mixer.Sound("images/player/sounds/damage.mp3"))
         else:
             print("[DEBUG] Dano ignorado por cooldown")
 
@@ -129,6 +131,19 @@ class Player(pygame.sprite.Sprite):
         self.direction.y = int(keys[pygame.K_s]) - int(keys[pygame.K_w])
         self.direction = self.direction.normalize() if self.direction.length() > 0 else pygame.Vector2()
 
+        #Atacar com o teclado
+        if keys[pygame.K_r] and self.pode_atacar():
+            self.can_attack = False
+            self.attacking = True
+            self.attack_time = pygame.time.get_ticks()
+            self.direction = pygame.Vector2()
+            self.create_attack_hitbox()
+            self.sword_frame_index = 0
+            channel = pygame.mixer.Channel(1)
+            som = pygame.mixer.Sound("images/sword/sounds/slash"+str(random.randint(1, 2))+".mp3")
+            som.set_volume(0.5)
+            channel.play(som)
+
         ## Ações com o mouse
         #mouse_buttons = pygame.mouse.get_pressed()
         #
@@ -174,7 +189,7 @@ class Player(pygame.sprite.Sprite):
         #    self.create_shield_hitbox()
         
         #if event.type == pygame.MOUSEBUTTONDOWN and event.button == 2:
-        #    self.take_damage()
+            #self.take_damage()
 
     def pode_atacar(self):
         return not self.attacking and not self.shield_active and self.can_attack
@@ -405,7 +420,7 @@ class Player(pygame.sprite.Sprite):
             if now - self.attack_time >= self.attack_duration:
                 self.attacking = False
                 self.attack_hitbox = None
-                self.can_attack = True
+                self.can_attack = True          
 
         if self.shield_active:
             if now - self.shield_time >= self.shield_duration:
